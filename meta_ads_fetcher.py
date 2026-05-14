@@ -15,6 +15,9 @@ WINDOWS = {
     '30D': {'date_preset': 'last_30d'},
 }
 
+PURCHASE_ACTIONS = ['purchase', 'offsite_conversion.fb_pixel_purchase']
+PURCHASE_VALUE_ACTIONS = ['purchase', 'offsite_conversion.fb_pixel_purchase']
+
 
 def get_action_value(actions, names):
     total = 0
@@ -50,15 +53,14 @@ def fetch_window(account, window_name, params):
         actions = row.get('actions', []) or []
         values = row.get('action_values', []) or []
         spend = float(row.get('spend', 0) or 0)
-        clicks = float(row.get('clicks', 0) or 0)
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
 
-        purchases = get_action_value(actions, ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'])
-        atc = get_action_value(actions, ['add_to_cart','omni_add_to_cart','offsite_conversion.fb_pixel_add_to_cart'])
-        ic = get_action_value(actions, ['initiate_checkout','omni_initiated_checkout','offsite_conversion.fb_pixel_initiate_checkout'])
-        vc = get_action_value(actions, ['view_content','omni_view_content','offsite_conversion.fb_pixel_view_content'])
-        lpv = get_action_value(actions, ['landing_page_view','omni_landing_page_view'])
-        revenue = get_action_value(values, ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'])
+        purchases = get_action_value(actions, PURCHASE_ACTIONS)
+        atc = get_action_value(actions, ['add_to_cart','offsite_conversion.fb_pixel_add_to_cart'])
+        ic = get_action_value(actions, ['initiate_checkout','offsite_conversion.fb_pixel_initiate_checkout'])
+        vc = get_action_value(actions, ['view_content','offsite_conversion.fb_pixel_view_content'])
+        lpv = get_action_value(actions, ['landing_page_view'])
+        revenue = get_action_value(values, PURCHASE_VALUE_ACTIONS)
 
         row['window'] = window_name
         row['landing_page_view'] = lpv
