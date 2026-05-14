@@ -48,7 +48,7 @@ try:
 
     st.subheader('AI Scaling Recommendations')
 
-    for _, row in df.iterrows():
+    for idx, row in df.iterrows():
         recommendations = []
 
         if row.get('roas') and row['roas'] > 4 and row.get('frequency', 0) < 2.5:
@@ -81,9 +81,10 @@ try:
                 for rec in recommendations:
                     st.write(f"• {rec}")
 
+                unique_key = f"approve_{idx}_{row.get('campaign_id')}_{row.get('adset_id')}_{row.get('ad_id')}"
                 st.button(
                     f"Approve Manual Action {row.get('adset_id')}",
-                    key=f"approve_{row.get('adset_id')}"
+                    key=unique_key
                 )
 
 except FileNotFoundError:
