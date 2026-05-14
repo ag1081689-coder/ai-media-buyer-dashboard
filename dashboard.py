@@ -1,10 +1,20 @@
+import os
 import pandas as pd
 import streamlit as st
+from meta_ads_fetcher import fetch_meta_ads_report
 
 st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
 
 st.title('AI Media Buyer Dashboard')
 st.caption('E-commerce AI Scaling & Testing System')
+
+if st.button('Fetch Latest Meta Data'):
+    try:
+        df_live = fetch_meta_ads_report()
+        df_live.to_csv('meta_ads_report.csv', index=False)
+        st.success('Meta data fetched successfully.')
+    except Exception as e:
+        st.error(f'Error fetching Meta data: {e}')
 
 try:
     df = pd.read_csv('meta_ads_report.csv')
@@ -77,4 +87,4 @@ try:
                 )
 
 except FileNotFoundError:
-    st.warning('Run meta_ads_fetcher.py first to generate the report.')
+    st.info('Click Fetch Latest Meta Data to generate the first report.')
