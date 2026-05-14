@@ -60,7 +60,6 @@ def fetch_window(account, window_name, params):
         ic = get_action_value(actions, ['offsite_conversion.fb_pixel_initiate_checkout']) or get_action_value(actions, ['initiate_checkout'])
         vc = get_action_value(actions, ['offsite_conversion.fb_pixel_view_content']) or get_action_value(actions, ['view_content'])
         lpv = get_action_value(actions, ['landing_page_view'])
-        revenue = round(spend * meta_roas, 2) if meta_roas is not None else None
 
         row['window'] = window_name
         row['landing_page_view'] = lpv
@@ -68,12 +67,12 @@ def fetch_window(account, window_name, params):
         row['add_to_cart'] = atc
         row['initiate_checkout'] = ic
         row['purchases'] = purchases
-        row['purchase_value'] = revenue
+        row['purchase_value'] = None
         row['cost_per_purchase'] = round(spend / purchases, 2) if purchases else None
         row['manual_roas'] = meta_roas
         row['meta_roas'] = meta_roas
         row['roas'] = meta_roas
-        row['aov'] = round(revenue / purchases, 2) if revenue and purchases else None
+        row['aov'] = None
         row['atc_rate'] = round((atc / lpv) * 100, 2) if lpv else None
         row['checkout_rate'] = round((ic / atc) * 100, 2) if atc else None
         row['purchase_rate'] = round((purchases / ic) * 100, 2) if ic else None
@@ -94,7 +93,18 @@ def fetch_meta_ads_report():
     for window_name, params in WINDOWS.items():
         all_rows.extend(fetch_window(account, window_name, params))
 
-    return pd.DataFrame(all_rows)
+    df = pd.DataFrame(all_rows)
+    if not df.empty:
+        df['spend'] = pd.to_numeric(df['spend'], errors='coerce').fillna(0)
+        df['meta_roas'] = pd.to_numeric(df['meta_roas'], errors='coerce')
+        for window in df['window'].dropna().unique():
+            mask = df['window'] == window
+            spend_sum = df.loc[mask, 'spend'].sum()
+            weighted_roas = ((df.loc[mask, 'spend'] * df.loc[mask, 'meta_roas']).sum() / spend_sum) if spend_sum else None
+            if weighted_roas is not None:
+                df.loc[mask, 'purchase_value'] = df.loc[mask, 'spend'] * df.loc[mask, 'meta_roas']
+                df.loc[mask, 'window_roas_weighted'] = weighted_roas
+    return df
 
 
 if __name__ == '__main__':
