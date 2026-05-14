@@ -1,0 +1,17 @@
+RULES = {
+    'min_spend_for_decision': 500,
+    'target_roas': 3.0,
+    'strong_roas': 5.0,
+    'max_cpp': 300,
+    'low_ctr': 1.0,
+    'high_ctr': 2.5,
+    'high_frequency': 3.0,
+    'low_lpv_rate': 55,
+    'low_atc_rate': 5,
+    'low_checkout_rate': 25,
+    'low_purchase_rate': 20,
+    'scale_budget_increase_pct': 20,
+    'max_daily_budget_increase_pct': 25,
+    'min_purchases_to_scale': 5,
+    'min_days_before_decision': 3,
+}
