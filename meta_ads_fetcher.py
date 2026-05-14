@@ -52,10 +52,13 @@ def fetch_window(account, window_name, params):
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
         meta_roas = get_roas_value(row)
 
-        purchases = get_action_value(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase'])
-        atc = get_action_value(actions, ['add_to_cart','offsite_conversion.fb_pixel_add_to_cart'])
-        ic = get_action_value(actions, ['initiate_checkout','offsite_conversion.fb_pixel_initiate_checkout'])
-        vc = get_action_value(actions, ['view_content','offsite_conversion.fb_pixel_view_content'])
+        website_purchases = get_action_value(actions, ['offsite_conversion.fb_pixel_purchase'])
+        purchase_actions = get_action_value(actions, ['purchase'])
+        purchases = website_purchases if website_purchases else purchase_actions
+
+        atc = get_action_value(actions, ['offsite_conversion.fb_pixel_add_to_cart']) or get_action_value(actions, ['add_to_cart'])
+        ic = get_action_value(actions, ['offsite_conversion.fb_pixel_initiate_checkout']) or get_action_value(actions, ['initiate_checkout'])
+        vc = get_action_value(actions, ['offsite_conversion.fb_pixel_view_content']) or get_action_value(actions, ['view_content'])
         lpv = get_action_value(actions, ['landing_page_view'])
         revenue = round(spend * meta_roas, 2) if meta_roas is not None else None
 
