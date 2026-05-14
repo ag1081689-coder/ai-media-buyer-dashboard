@@ -12,19 +12,8 @@ AD_ACCOUNT_ID = os.getenv('META_AD_ACCOUNT_ID')
 WINDOWS = {
     '3D': {'date_preset': 'last_3d'},
     '7D': {'date_preset': 'last_7d'},
-    '30D': {'date_preset': 'last_30d'},
+    'MTD': {'date_preset': 'this_month'},
 }
-
-PURCHASE_ACTIONS = ['purchase', 'offsite_conversion.fb_pixel_purchase']
-PURCHASE_VALUE_ACTIONS = ['purchase', 'offsite_conversion.fb_pixel_purchase']
-
-
-def get_action_value(actions, names):
-    total = 0
-    for action in actions or []:
-        if action.get('action_type') in names:
-            total += float(action.get('value', 0) or 0)
-    return total
 
 
 def get_roas_value(row):
@@ -38,11 +27,19 @@ def get_roas_value(row):
     return None
 
 
+def get_action_value(actions, names):
+    total = 0
+    for action in actions or []:
+        if action.get('action_type') in names:
+            total += float(action.get('value', 0) or 0)
+    return total
+
+
 def fetch_window(account, window_name, params):
     fields = [
         'campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name',
         'spend','impressions','reach','clicks','inline_link_clicks',
-        'cpc','cpm','ctr','frequency','actions','action_values','purchase_roas','website_purchase_roas'
+        'cpc','cpm','ctr','frequency','actions','purchase_roas','website_purchase_roas'
     ]
 
     insights = account.get_insights(fields=fields, params={**params, 'level': 'ad'})
@@ -51,16 +48,16 @@ def fetch_window(account, window_name, params):
     for item in insights:
         row = item.export_all_data()
         actions = row.get('actions', []) or []
-        values = row.get('action_values', []) or []
         spend = float(row.get('spend', 0) or 0)
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
+        meta_roas = get_roas_value(row)
 
-        purchases = get_action_value(actions, PURCHASE_ACTIONS)
+        purchases = get_action_value(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase'])
         atc = get_action_value(actions, ['add_to_cart','offsite_conversion.fb_pixel_add_to_cart'])
         ic = get_action_value(actions, ['initiate_checkout','offsite_conversion.fb_pixel_initiate_checkout'])
         vc = get_action_value(actions, ['view_content','offsite_conversion.fb_pixel_view_content'])
         lpv = get_action_value(actions, ['landing_page_view'])
-        revenue = get_action_value(values, PURCHASE_VALUE_ACTIONS)
+        revenue = round(spend * meta_roas, 2) if meta_roas is not None else None
 
         row['window'] = window_name
         row['landing_page_view'] = lpv
@@ -70,10 +67,10 @@ def fetch_window(account, window_name, params):
         row['purchases'] = purchases
         row['purchase_value'] = revenue
         row['cost_per_purchase'] = round(spend / purchases, 2) if purchases else None
-        row['manual_roas'] = round(revenue / spend, 2) if spend else None
-        row['meta_roas'] = get_roas_value(row)
-        row['roas'] = row['manual_roas']
-        row['aov'] = round(revenue / purchases, 2) if purchases else None
+        row['manual_roas'] = meta_roas
+        row['meta_roas'] = meta_roas
+        row['roas'] = meta_roas
+        row['aov'] = round(revenue / purchases, 2) if revenue and purchases else None
         row['atc_rate'] = round((atc / lpv) * 100, 2) if lpv else None
         row['checkout_rate'] = round((ic / atc) * 100, 2) if atc else None
         row['purchase_rate'] = round((purchases / ic) * 100, 2) if ic else None
@@ -101,6 +98,6 @@ if __name__ == '__main__':
     df = fetch_meta_ads_report()
     if not df.empty:
         df.to_csv('meta_ads_report.csv', index=False)
-        print('Multi-window e-commerce report exported successfully.')
+        print('Meta Ads report exported successfully.')
     else:
         print('No data found.')
