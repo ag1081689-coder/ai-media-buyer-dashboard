@@ -18,6 +18,9 @@ if st.button('Fetch Latest Meta Data'):
 try:
     df = pd.read_csv('meta_ads_report.csv')
 
+    if 'window' in df.columns:
+        df['window'] = df['window'].replace({'MTD': '30D', 'this_month': '30D'})
+
     numeric_cols = [
         'spend','ctr','cpc','cpm','frequency','roas','purchases',
         'cost_per_purchase','purchase_value','aov','add_to_cart',
@@ -28,12 +31,12 @@ try:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    tabs = st.tabs(['Last 3 Days', 'Last 7 Days', 'Last 30 Days'])
+    tabs = st.tabs(['Last 3 Days', 'Last 7 Days', 'This Month'])
 
     window_map = {
         'Last 3 Days': '3D',
         'Last 7 Days': '7D',
-        'Last 30 Days': '30D'
+        'This Month': '30D'
     }
 
     for tab_name, tab in zip(window_map.keys(), tabs):
@@ -42,7 +45,7 @@ try:
             window_df = df[df['window'] == current_window].copy()
 
             if window_df.empty:
-                st.warning('No data available.')
+                st.warning('No data available. Click Fetch Latest Meta Data again after the latest deployment.')
                 continue
 
             total_spend = window_df['spend'].sum()
