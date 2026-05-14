@@ -1,0 +1,5 @@
+facebook-business==22.0.0
+pandas==2.2.3
+python-dotenv==1.0.1
+streamlit==1.40.2
+plotly==5.24.1
