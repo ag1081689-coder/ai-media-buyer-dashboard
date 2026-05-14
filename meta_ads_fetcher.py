@@ -38,7 +38,7 @@ def get_roas_value(row):
 def fetch_window(account, window_name, params):
     fields = [
         'campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name',
-        'spend','impressions','reach','clicks','inline_link_clicks','landing_page_view',
+        'spend','impressions','reach','clicks','inline_link_clicks',
         'cpc','cpm','ctr','frequency','actions','action_values','purchase_roas','website_purchase_roas'
     ]
 
@@ -51,15 +51,17 @@ def fetch_window(account, window_name, params):
         values = row.get('action_values', []) or []
         spend = float(row.get('spend', 0) or 0)
         clicks = float(row.get('clicks', 0) or 0)
-        lpv = float(row.get('landing_page_view', 0) or 0)
+        link_clicks = float(row.get('inline_link_clicks', 0) or 0)
 
         purchases = get_action_value(actions, ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'])
         atc = get_action_value(actions, ['add_to_cart','omni_add_to_cart','offsite_conversion.fb_pixel_add_to_cart'])
         ic = get_action_value(actions, ['initiate_checkout','omni_initiated_checkout','offsite_conversion.fb_pixel_initiate_checkout'])
         vc = get_action_value(actions, ['view_content','omni_view_content','offsite_conversion.fb_pixel_view_content'])
+        lpv = get_action_value(actions, ['landing_page_view','omni_landing_page_view'])
         revenue = get_action_value(values, ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'])
 
         row['window'] = window_name
+        row['landing_page_view'] = lpv
         row['view_content'] = vc
         row['add_to_cart'] = atc
         row['initiate_checkout'] = ic
@@ -73,7 +75,7 @@ def fetch_window(account, window_name, params):
         row['atc_rate'] = round((atc / lpv) * 100, 2) if lpv else None
         row['checkout_rate'] = round((ic / atc) * 100, 2) if atc else None
         row['purchase_rate'] = round((purchases / ic) * 100, 2) if ic else None
-        row['lpv_rate'] = round((lpv / clicks) * 100, 2) if clicks else None
+        row['lpv_rate'] = round((lpv / link_clicks) * 100, 2) if link_clicks else None
         rows.append(row)
 
     return rows
