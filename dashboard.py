@@ -24,6 +24,7 @@ def score_campaign(row, overall_roas):
     ctr = safe_num(row.get('ctr'))
     frequency = safe_num(row.get('frequency'))
     cpp = safe_num(row.get('cost_per_purchase'))
+    campaign_status = str(row.get('campaign_effective_status', ''))
 
     if roas >= overall_roas * 1.2 and purchases >= 5:
         score += 35
@@ -93,7 +94,16 @@ def score_campaign(row, overall_roas):
         status = 'Kill/Pause'
         action = 'ضعيفة. قلل الصرف أو وقفها لو الصرف كافي.'
 
-    return score, status, action, ' | '.join(reasons[:4])
+    reopen = 'No'
+
+    if campaign_status != 'ACTIVE' and score >= 70:
+        reopen = 'YES - Reopen This Campaign'
+        action = 'الكامبين مقفولة لكن أرقامها قوية. افتحها تاني واختبرها.'
+
+    if campaign_status == 'ACTIVE' and score < 35:
+        action = 'الكامبين شغالة لكن ضعيفة. راجعها فوراً أو وقفها.'
+
+    return score, status, action, reopen, ' | '.join(reasons[:4])
 
 
 st.title('AI Media Buyer Dashboard')
@@ -137,7 +147,7 @@ try:
             window_df = df[df['window'] == current_window].copy()
 
             if window_df.empty:
-                st.warning('No data available. Click Fetch Latest Meta Data again after the latest deployment.')
+                st.warning('No data available.')
                 continue
 
             total_spend = window_df['spend'].sum()
@@ -158,7 +168,10 @@ try:
             with top4:
                 st.metric('Purchases', int(window_df['purchases'].sum()))
 
-            campaign_df = window_df.groupby('campaign_name', as_index=False).agg({
+            campaign_df = window_df.groupby(
+                ['campaign_name', 'campaign_status', 'campaign_effective_status'],
+                as_index=False
+            ).agg({
                 'spend': 'sum',
                 'purchase_value': 'sum',
                 'purchases': 'sum',
@@ -172,6 +185,7 @@ try:
                 lambda r: round(r['purchase_value'] / r['spend'], 2) if r['spend'] else 0,
                 axis=1
             )
+
             campaign_df['ctr'] = campaign_df.apply(
                 lambda r: round((r['clicks'] / r['impressions']) * 100, 2) if r['impressions'] else 0,
                 axis=1
@@ -182,19 +196,34 @@ try:
                 axis=1,
                 result_type='expand'
             )
-            campaign_df[['score', 'status', 'next_action', 'why']] = scored_rows
+
+            campaign_df[['score', 'status', 'next_action', 'reopen_signal', 'why']] = scored_rows
             campaign_df = campaign_df.sort_values('score', ascending=False)
 
             st.subheader('Campaign Scorecard')
+
             score_cols = [
-                'campaign_name','score','status','next_action','why',
-                'spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency'
+                'campaign_name','campaign_effective_status','score','status',
+                'reopen_signal','next_action','why','spend','purchase_value',
+                'manual_roas','purchases','cost_per_purchase','ctr','frequency'
             ]
+
             st.dataframe(campaign_df[score_cols], use_container_width=True)
 
-            st.subheader('Open These First')
-            priority_df = campaign_df[campaign_df['status'].isin(['Scale', 'Kill/Pause', 'Test/Fix'])].head(10)
-            st.dataframe(priority_df[score_cols], use_container_width=True)
+            reopen_df = campaign_df[campaign_df['reopen_signal'] == 'YES - Reopen This Campaign']
+
+            if not reopen_df.empty:
+                st.subheader('Campaigns You Should Reopen')
+                st.dataframe(reopen_df[score_cols], use_container_width=True)
+
+            weak_live_df = campaign_df[
+                (campaign_df['campaign_effective_status'] == 'ACTIVE') &
+                (campaign_df['score'] < 35)
+            ]
+
+            if not weak_live_df.empty:
+                st.subheader('Weak Active Campaigns')
+                st.dataframe(weak_live_df[score_cols], use_container_width=True)
 
             st.subheader('Ad Level Performance')
 
@@ -206,39 +235,6 @@ try:
 
             existing_cols = [c for c in display_cols if c in window_df.columns]
             st.dataframe(window_df[existing_cols], use_container_width=True)
-
-            st.subheader('AI Recommendations')
-
-            for idx, row in campaign_df.iterrows():
-                if row['status'] == 'Scale':
-                    with st.container(border=True):
-                        st.markdown(f"### {row.get('campaign_name')} — Score {row.get('score')}")
-                        st.write(row.get('next_action'))
-                        st.write(row.get('why'))
-                        st.markdown('#### Scaling Ideas')
-                        st.write('• زود الميزانية 15-20% فقط لو الأداء ثابت آخر 3 أيام')
-                        st.write('• دوبليكيت CBO لو نفس الكرياتيف مستقر ومفيش fatigue')
-                        st.write('• اعمل نسخة Broad بنفس الهووك الفائز')
-
-                elif row['status'] == 'Test/Fix':
-                    with st.container(border=True):
-                        st.markdown(f"### {row.get('campaign_name')} — Score {row.get('score')}")
-                        st.write(row.get('next_action'))
-                        st.write(row.get('why'))
-                        st.markdown('#### Testing Hooks')
-                        st.write('• Problem → Solution hook')
-                        st.write('• Price shock opening')
-                        st.write('• UGC reaction style')
-                        st.write('• Before / After transformation')
-
-                elif row['status'] == 'Kill/Pause':
-                    with st.container(border=True):
-                        st.markdown(f"### {row.get('campaign_name')} — Score {row.get('score')}")
-                        st.write(row.get('next_action'))
-                        st.write(row.get('why'))
-                        st.markdown('#### Action')
-                        st.write('• افتحها وراجع آخر 3 أيام')
-                        st.write('• لو مفيش تحسن، قلل الميزانية أو وقفها')
 
 except FileNotFoundError:
     st.info('Click Fetch Latest Meta Data to generate the first report.')
