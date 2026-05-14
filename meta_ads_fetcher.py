@@ -35,7 +35,18 @@ def get_action_value(actions, names):
     return total
 
 
-def fetch_window(account, window_name, params):
+def fetch_campaign_status(account):
+    campaigns = account.get_campaigns(fields=['id', 'name', 'status', 'effective_status'])
+    return {
+        str(c.get('id')): {
+            'campaign_status': c.get('status'),
+            'campaign_effective_status': c.get('effective_status')
+        }
+        for c in campaigns
+    }
+
+
+def fetch_window(account, window_name, params, status_map):
     fields = [
         'campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name',
         'spend','impressions','reach','clicks','inline_link_clicks',
@@ -51,6 +62,8 @@ def fetch_window(account, window_name, params):
         spend = float(row.get('spend', 0) or 0)
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
         meta_roas = get_roas_value(row)
+        campaign_id = str(row.get('campaign_id'))
+        status_info = status_map.get(campaign_id, {})
 
         website_purchases = get_action_value(actions, ['offsite_conversion.fb_pixel_purchase'])
         purchase_actions = get_action_value(actions, ['purchase'])
@@ -62,6 +75,8 @@ def fetch_window(account, window_name, params):
         lpv = get_action_value(actions, ['landing_page_view'])
 
         row['window'] = window_name
+        row['campaign_status'] = status_info.get('campaign_status')
+        row['campaign_effective_status'] = status_info.get('campaign_effective_status')
         row['landing_page_view'] = lpv
         row['view_content'] = vc
         row['add_to_cart'] = atc
@@ -88,10 +103,11 @@ def fetch_meta_ads_report():
 
     FacebookAdsApi.init(access_token=ACCESS_TOKEN)
     account = AdAccount(AD_ACCOUNT_ID)
+    status_map = fetch_campaign_status(account)
 
     all_rows = []
     for window_name, params in WINDOWS.items():
-        all_rows.extend(fetch_window(account, window_name, params))
+        all_rows.extend(fetch_window(account, window_name, params, status_map))
 
     df = pd.DataFrame(all_rows)
     if not df.empty:
