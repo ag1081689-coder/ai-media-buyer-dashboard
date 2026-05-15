@@ -10,6 +10,7 @@ ACCESS_TOKEN = os.getenv('META_ACCESS_TOKEN')
 AD_ACCOUNT_ID = os.getenv('META_AD_ACCOUNT_ID')
 
 WINDOWS = {
+    'TODAY': {'date_preset': 'today'},
     '3D': {'date_preset': 'last_3d'},
     '7D': {'date_preset': 'last_7d'},
     'MTD': {'date_preset': 'this_month'},
@@ -46,7 +47,29 @@ def fetch_campaign_status(account):
     }
 
 
-def fetch_window(account, window_name, params, status_map):
+def fetch_adset_status(account):
+    adsets = account.get_ad_sets(fields=['id', 'name', 'status', 'effective_status', 'campaign_id'])
+    return {
+        str(a.get('id')): {
+            'adset_status': a.get('status'),
+            'adset_effective_status': a.get('effective_status')
+        }
+        for a in adsets
+    }
+
+
+def fetch_ad_status(account):
+    ads = account.get_ads(fields=['id', 'name', 'status', 'effective_status', 'adset_id', 'campaign_id'])
+    return {
+        str(a.get('id')): {
+            'ad_status': a.get('status'),
+            'ad_effective_status': a.get('effective_status')
+        }
+        for a in ads
+    }
+
+
+def fetch_window(account, window_name, params, status_map, adset_status_map, ad_status_map):
     fields = [
         'campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name',
         'spend','impressions','reach','clicks','inline_link_clicks',
@@ -63,7 +86,11 @@ def fetch_window(account, window_name, params, status_map):
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
         meta_roas = get_roas_value(row)
         campaign_id = str(row.get('campaign_id'))
+        adset_id = str(row.get('adset_id'))
+        ad_id = str(row.get('ad_id'))
         status_info = status_map.get(campaign_id, {})
+        adset_status = adset_status_map.get(adset_id, {})
+        ad_status = ad_status_map.get(ad_id, {})
 
         website_purchases = get_action_value(actions, ['offsite_conversion.fb_pixel_purchase'])
         purchase_actions = get_action_value(actions, ['purchase'])
@@ -77,6 +104,10 @@ def fetch_window(account, window_name, params, status_map):
         row['window'] = window_name
         row['campaign_status'] = status_info.get('campaign_status')
         row['campaign_effective_status'] = status_info.get('campaign_effective_status')
+        row['adset_status'] = adset_status.get('adset_status')
+        row['adset_effective_status'] = adset_status.get('adset_effective_status')
+        row['ad_status'] = ad_status.get('ad_status')
+        row['ad_effective_status'] = ad_status.get('ad_effective_status')
         row['landing_page_view'] = lpv
         row['view_content'] = vc
         row['add_to_cart'] = atc
@@ -104,10 +135,12 @@ def fetch_meta_ads_report():
     FacebookAdsApi.init(access_token=ACCESS_TOKEN)
     account = AdAccount(AD_ACCOUNT_ID)
     status_map = fetch_campaign_status(account)
+    adset_status_map = fetch_adset_status(account)
+    ad_status_map = fetch_ad_status(account)
 
     all_rows = []
     for window_name, params in WINDOWS.items():
-        all_rows.extend(fetch_window(account, window_name, params, status_map))
+        all_rows.extend(fetch_window(account, window_name, params, status_map, adset_status_map, ad_status_map))
 
     df = pd.DataFrame(all_rows)
     if not df.empty:
