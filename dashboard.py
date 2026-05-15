@@ -8,18 +8,19 @@ st.markdown('''
 <style>
 .stApp {background:#f0f2f5; color:#1c1e21;}
 .block-container {padding-top:1.2rem; padding-bottom:4rem; max-width:1550px;}
-.smart-hero {background:#ffffff; border:1px solid #dadde1; border-radius:14px; padding:22px 26px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.smart-hero h1 {font-size:34px; margin:0; color:#1c1e21; letter-spacing:-.5px;}
+.smart-hero {background:#ffffff; border:1px solid #dadde1; border-radius:14px; padding:20px 24px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.smart-hero h1 {font-size:32px; margin:0; color:#1c1e21;}
 .smart-hero p {color:#606770; font-size:15px; margin:8px 0 0;}
 .badge {display:inline-block; padding:6px 10px; border-radius:999px; background:#e7f3ff; color:#1877f2; font-weight:700; font-size:12px; margin-bottom:10px;}
 [data-testid="stMetric"] {background:#ffffff; border:1px solid #dadde1; border-radius:12px; padding:14px 16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
 [data-testid="stMetricLabel"] {color:#606770; font-size:13px;}
-[data-testid="stMetricValue"] {color:#1c1e21; font-size:28px;}
-.stButton button {border-radius:8px; background:#1877f2; color:white; border:0; font-weight:700; padding:.65rem 1rem;}
+[data-testid="stMetricValue"] {color:#1c1e21; font-size:27px;}
+.stButton button {border-radius:8px; background:#1877f2; color:white; border:0; font-weight:700; padding:.62rem .95rem;}
 .stButton button:hover {background:#166fe5; color:white;}
 [data-testid="stDataFrame"] {background:#ffffff; border-radius:12px; border:1px solid #dadde1; box-shadow:0 1px 2px rgba(0,0,0,.08); overflow:hidden;}
-.table-title {font-size:22px; font-weight:800; color:#1c1e21; margin:22px 0 8px;}
+.table-title {font-size:21px; font-weight:800; color:#1c1e21; margin:20px 0 6px;}
 .help-text {font-size:14px; color:#606770; margin-bottom:12px;}
+.filter-card {background:#ffffff; border:1px solid #dadde1; border-radius:12px; padding:14px 16px; margin:12px 0 16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -43,27 +44,24 @@ def get_creative_diagnosis(row):
     roas = safe_num(row.get('manual_roas'))
     purchases = safe_num(row.get('purchases'))
     cpp = safe_num(row.get('cost_per_purchase'))
-
     issues = []
     fixes = []
 
     if ctr < 1:
         issues.append('Hook issue')
-        fixes.append('Create 5 new first-line hooks focused on problem, price shock, proof, comparison, and UGC reaction.')
+        fixes.append('Create 5 new first-line hooks: problem, price shock, proof, comparison, UGC reaction.')
     if freq > 3.5 and roas < 4:
         issues.append('Visual fatigue')
-        fixes.append('Refresh the visual: new thumbnail, new opening frame, new product shot, and new UGC face.')
+        fixes.append('Refresh thumbnail, opening frame, product shot, and UGC face.')
     if purchases > 0 and cpp > 300:
         issues.append('Offer or caption issue')
-        fixes.append('Rewrite caption with stronger value stack, delivery/payment reassurance, and clearer CTA.')
+        fixes.append('Rewrite caption with value stack, payment/delivery reassurance, and clear CTA.')
     if roas >= 5 and purchases >= 10:
         issues.append('Winning angle')
-        fixes.append('Create 3 variations from the same winning angle and duplicate into a controlled scaling test.')
-
+        fixes.append('Create 3 variations from the winning angle and duplicate into a controlled scaling test.')
     if not issues:
         issues.append('No major creative issue')
         fixes.append('Keep monitoring. Do not change the winning ad unless frequency rises or ROAS drops.')
-
     return ', '.join(issues), ' | '.join(fixes)
 
 
@@ -123,17 +121,23 @@ def score_campaign(row, overall_roas):
 
     reopen = 'No'
     if campaign_status != 'ACTIVE' and score >= 70:
-        reopen = 'YES - Reopen This Campaign'; action = 'This campaign is off but has strong past data. Reopen with a controlled test budget.'
+        reopen = 'YES'; action = 'This campaign is off but has strong past data. Reopen with a controlled test budget.'
     if campaign_status == 'ACTIVE' and score < 35:
         action = 'Active but weak. Review immediately or pause.'
     return score, status, action, reopen, ' | '.join(reasons[:4])
+
+
+def show_table(title, help_text, data, cols):
+    st.markdown(f'<div class="table-title">{title}</div><div class="help-text">{help_text}</div>', unsafe_allow_html=True)
+    existing_cols = [c for c in cols if c in data.columns]
+    st.dataframe(data[existing_cols], use_container_width=True, hide_index=True)
 
 
 st.markdown('''
 <div class="smart-hero">
   <span class="badge">Meta Ads Decision Dashboard</span>
   <h1>AI Media Buyer Dashboard</h1>
-  <p>Clear campaign scoring, Meta-style tables, and direct creative actions for hooks, captions, and visuals.</p>
+  <p>Use filters to switch between campaign status, action type, creative problems, and performance views.</p>
 </div>
 ''', unsafe_allow_html=True)
 
@@ -154,57 +158,67 @@ try:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    tabs = st.tabs(['Last 3 Days', 'Last 7 Days', 'This Month'])
+    window_choice = st.segmented_control('Time window', ['Last 3 Days', 'Last 7 Days', 'This Month'], default='This Month')
     window_map = {'Last 3 Days': '3D', 'Last 7 Days': '7D', 'This Month': '30D'}
+    window_df = df[df['window'] == window_map[window_choice]].copy()
 
-    for tab_name, tab in zip(window_map.keys(), tabs):
-        with tab:
-            window_df = df[df['window'] == window_map[tab_name]].copy()
-            if window_df.empty:
-                st.warning('No data available.')
-                continue
-            total_spend = window_df['spend'].sum()
-            total_revenue = window_df['purchase_value'].sum()
-            overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
+    if window_df.empty:
+        st.warning('No data available.')
+    else:
+        total_spend = window_df['spend'].sum()
+        total_revenue = window_df['purchase_value'].sum()
+        overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
 
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric('Amount spent', format_money(total_spend))
-            c2.metric('Purchase value', format_money(total_revenue))
-            c3.metric('Purchase ROAS', overall_roas)
-            c4.metric('Website purchases', int(window_df['purchases'].sum()))
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric('Amount spent', format_money(total_spend))
+        c2.metric('Purchase value', format_money(total_revenue))
+        c3.metric('Purchase ROAS', overall_roas)
+        c4.metric('Website purchases', int(window_df['purchases'].sum()))
 
-            campaign_df = window_df.groupby(['campaign_name', 'campaign_status', 'campaign_effective_status'], as_index=False).agg({'spend': 'sum','purchase_value': 'sum','purchases': 'sum','clicks': 'sum','impressions': 'sum','frequency': 'mean','cost_per_purchase': 'mean'})
-            campaign_df['manual_roas'] = campaign_df.apply(lambda r: round(r['purchase_value'] / r['spend'], 2) if r['spend'] else 0, axis=1)
-            campaign_df['ctr'] = campaign_df.apply(lambda r: round((r['clicks'] / r['impressions']) * 100, 2) if r['impressions'] else 0, axis=1)
-            scored_rows = campaign_df.apply(lambda r: score_campaign(r, overall_roas), axis=1, result_type='expand')
-            campaign_df[['score', 'status', 'next_action', 'reopen_signal', 'why']] = scored_rows
-            campaign_df[['creative_issue', 'creative_fix']] = campaign_df.apply(lambda r: pd.Series(get_creative_diagnosis(r)), axis=1)
-            campaign_df = campaign_df.sort_values('score', ascending=False)
+        campaign_df = window_df.groupby(['campaign_name', 'campaign_status', 'campaign_effective_status'], as_index=False).agg({'spend': 'sum','purchase_value': 'sum','purchases': 'sum','clicks': 'sum','impressions': 'sum','frequency': 'mean','cost_per_purchase': 'mean'})
+        campaign_df['manual_roas'] = campaign_df.apply(lambda r: round(r['purchase_value'] / r['spend'], 2) if r['spend'] else 0, axis=1)
+        campaign_df['ctr'] = campaign_df.apply(lambda r: round((r['clicks'] / r['impressions']) * 100, 2) if r['impressions'] else 0, axis=1)
+        scored_rows = campaign_df.apply(lambda r: score_campaign(r, overall_roas), axis=1, result_type='expand')
+        campaign_df[['score', 'status', 'next_action', 'reopen_signal', 'why']] = scored_rows
+        campaign_df[['creative_issue', 'creative_fix']] = campaign_df.apply(lambda r: pd.Series(get_creative_diagnosis(r)), axis=1)
+        campaign_df = campaign_df.sort_values('score', ascending=False)
 
-            score_cols = ['campaign_name','campaign_effective_status','score','status','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency']
+        st.markdown('<div class="filter-card">', unsafe_allow_html=True)
+        view_choice = st.segmented_control('View', ['All Campaigns', 'Active Only', 'Scale', 'Watch', 'Test/Fix', 'Kill/Pause', 'Reopen', 'Creative Fixes', 'Ad Level'], default='All Campaigns')
+        col_a, col_b, col_c, col_d = st.columns(4)
+        min_score = col_a.slider('Min score', 0, 100, 0, 5)
+        status_filter = col_b.multiselect('Campaign status', sorted(campaign_df['campaign_effective_status'].dropna().unique().tolist()), default=[])
+        min_roas = col_c.number_input('Min ROAS', min_value=0.0, value=0.0, step=0.5)
+        search = col_d.text_input('Search campaign')
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('<div class="table-title">Campaign Scorecard</div><div class="help-text">Start here. This table tells you what to scale, watch, fix, pause, or reopen.</div>', unsafe_allow_html=True)
-            st.dataframe(campaign_df[score_cols], use_container_width=True, hide_index=True)
+        filtered = campaign_df.copy()
+        filtered = filtered[filtered['score'] >= min_score]
+        filtered = filtered[filtered['manual_roas'] >= min_roas]
+        if status_filter:
+            filtered = filtered[filtered['campaign_effective_status'].isin(status_filter)]
+        if search:
+            filtered = filtered[filtered['campaign_name'].str.contains(search, case=False, na=False)]
 
-            reopen_df = campaign_df[campaign_df['reopen_signal'] == 'YES - Reopen This Campaign']
-            if not reopen_df.empty:
-                st.markdown('<div class="table-title">Campaigns You Should Reopen</div>', unsafe_allow_html=True)
-                st.dataframe(reopen_df[score_cols], use_container_width=True, hide_index=True)
+        if view_choice == 'Active Only':
+            filtered = filtered[filtered['campaign_effective_status'] == 'ACTIVE']
+        elif view_choice in ['Scale', 'Watch', 'Test/Fix', 'Kill/Pause']:
+            filtered = filtered[filtered['status'] == view_choice]
+        elif view_choice == 'Reopen':
+            filtered = filtered[filtered['reopen_signal'] == 'YES']
+        elif view_choice == 'Creative Fixes':
+            filtered = filtered[filtered['creative_issue'] != 'No major creative issue']
 
-            weak_live_df = campaign_df[(campaign_df['campaign_effective_status'] == 'ACTIVE') & (campaign_df['score'] < 35)]
-            if not weak_live_df.empty:
-                st.markdown('<div class="table-title">Weak Active Campaigns</div>', unsafe_allow_html=True)
-                st.dataframe(weak_live_df[score_cols], use_container_width=True, hide_index=True)
+        score_cols = ['campaign_name','campaign_effective_status','score','status','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency']
 
-            creative_df = campaign_df[campaign_df['creative_issue'] != 'No major creative issue']
-            if not creative_df.empty:
-                st.markdown('<div class="table-title">Creative Fix List</div><div class="help-text">Use this to know exactly when to change hook, caption, offer, or visual.</div>', unsafe_allow_html=True)
-                st.dataframe(creative_df[['campaign_name','score','status','creative_issue','creative_fix','manual_roas','ctr','frequency','cost_per_purchase']], use_container_width=True, hide_index=True)
-
-            st.markdown('<div class="table-title">Ad Level Performance</div>', unsafe_allow_html=True)
+        if view_choice == 'Ad Level':
+            ad_filtered = window_df.copy()
+            if search:
+                ad_filtered = ad_filtered[ad_filtered['campaign_name'].str.contains(search, case=False, na=False)]
             display_cols = ['campaign_name','adset_name','ad_name','spend','purchase_value','manual_roas','meta_roas','ctr','cpc','frequency','purchases','cost_per_purchase','atc_rate','purchase_rate']
-            existing_cols = [c for c in display_cols if c in window_df.columns]
-            st.dataframe(window_df[existing_cols], use_container_width=True, hide_index=True)
+            show_table('Ad Level Performance', 'Use this when you want to inspect specific ad sets or ads.', ad_filtered, display_cols)
+        else:
+            show_table(view_choice, 'Filtered campaign decision table. Change the filters above to narrow the view.', filtered, score_cols)
 
 except FileNotFoundError:
     st.info('Click Fetch Latest Meta Data to generate the first report.')
