@@ -42,12 +42,7 @@ def fetch_business_ad_accounts():
         if not acc_id or acc_id in seen:
             return
         seen.add(acc_id)
-        accounts.append({
-            'id': acc_id,
-            'account_id': acc.get('account_id'),
-            'name': acc.get('name') or acc_id,
-            'source': source,
-        })
+        accounts.append({'id': acc_id, 'account_id': acc.get('account_id'), 'name': acc.get('name') or acc_id, 'source': source})
 
     if BUSINESS_ID:
         business = Business(BUSINESS_ID)
@@ -56,15 +51,9 @@ def fetch_business_ad_accounts():
         for acc in business.get_client_ad_accounts(fields=['id', 'name', 'account_id']):
             add_account(acc.export_all_data(), 'client')
 
-    if not accounts:
-        me_accounts = AdAccount(normalize_account_id(AD_ACCOUNT_ID)).get_api().call('GET', ('me', 'adaccounts'), params={'fields': 'id,name,account_id'})
-        for acc in me_accounts.json().get('data', []):
-            add_account(acc, 'user')
-
-    if AD_ACCOUNT_ID:
+    if not accounts and AD_ACCOUNT_ID:
         default_id = normalize_account_id(AD_ACCOUNT_ID)
-        if default_id not in seen:
-            accounts.insert(0, {'id': default_id, 'account_id': default_id.replace('act_', ''), 'name': default_id, 'source': 'default'})
+        accounts.insert(0, {'id': default_id, 'account_id': default_id.replace('act_', ''), 'name': default_id, 'source': 'default'})
 
     return accounts
 
@@ -88,24 +77,13 @@ def get_action_value(actions, names):
     return total
 
 
-def fetch_campaign_status(account):
-    campaigns = account.get_campaigns(fields=['id', 'name', 'status', 'effective_status'])
-    return {str(c.get('id')): {'campaign_status': c.get('status'), 'campaign_effective_status': c.get('effective_status')} for c in campaigns}
-
-
-def fetch_adset_status(account):
-    adsets = account.get_ad_sets(fields=['id', 'name', 'status', 'effective_status', 'campaign_id'])
-    return {str(a.get('id')): {'adset_status': a.get('status'), 'adset_effective_status': a.get('effective_status')} for a in adsets}
-
-
-def fetch_ad_status(account):
-    ads = account.get_ads(fields=['id', 'name', 'status', 'effective_status', 'adset_id', 'campaign_id'])
-    return {str(a.get('id')): {'ad_status': a.get('status'), 'ad_effective_status': a.get('effective_status')} for a in ads}
-
-
-def fetch_window(account, window_name, params, status_map, adset_status_map, ad_status_map, account_id=None, account_name=None):
-    fields = ['campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name','spend','impressions','reach','clicks','inline_link_clicks','cpc','cpm','ctr','frequency','actions','purchase_roas','website_purchase_roas']
-    insights = account.get_insights(fields=fields, params={**params, 'level': 'ad'})
+def fetch_window(account, window_name, params, account_id=None, account_name=None):
+    fields = [
+        'campaign_id','campaign_name','adset_id','adset_name','ad_id','ad_name',
+        'spend','impressions','reach','clicks','inline_link_clicks','cpc','cpm','ctr','frequency',
+        'actions','purchase_roas','website_purchase_roas'
+    ]
+    insights = account.get_insights(fields=fields, params={**params, 'level': 'ad', 'limit': 5000})
     rows = []
 
     for item in insights:
@@ -114,9 +92,6 @@ def fetch_window(account, window_name, params, status_map, adset_status_map, ad_
         spend = float(row.get('spend', 0) or 0)
         link_clicks = float(row.get('inline_link_clicks', 0) or 0)
         meta_roas = get_roas_value(row)
-        campaign_id = str(row.get('campaign_id'))
-        adset_id = str(row.get('adset_id'))
-        ad_id = str(row.get('ad_id'))
 
         website_purchases = get_action_value(actions, ['offsite_conversion.fb_pixel_purchase'])
         purchase_actions = get_action_value(actions, ['purchase'])
@@ -129,12 +104,12 @@ def fetch_window(account, window_name, params, status_map, adset_status_map, ad_
         row['account_id'] = account_id
         row['account_name'] = account_name
         row['window'] = window_name
-        row['campaign_status'] = status_map.get(campaign_id, {}).get('campaign_status')
-        row['campaign_effective_status'] = status_map.get(campaign_id, {}).get('campaign_effective_status')
-        row['adset_status'] = adset_status_map.get(adset_id, {}).get('adset_status')
-        row['adset_effective_status'] = adset_status_map.get(adset_id, {}).get('adset_effective_status')
-        row['ad_status'] = ad_status_map.get(ad_id, {}).get('ad_status')
-        row['ad_effective_status'] = ad_status_map.get(ad_id, {}).get('ad_effective_status')
+        row['campaign_status'] = 'UNKNOWN'
+        row['campaign_effective_status'] = 'UNKNOWN'
+        row['adset_status'] = 'UNKNOWN'
+        row['adset_effective_status'] = 'UNKNOWN'
+        row['ad_status'] = 'UNKNOWN'
+        row['ad_effective_status'] = 'UNKNOWN'
         row['landing_page_view'] = lpv
         row['view_content'] = vc
         row['add_to_cart'] = atc
@@ -154,29 +129,28 @@ def fetch_window(account, window_name, params, status_map, adset_status_map, ad_
     return rows
 
 
-def fetch_meta_ads_report(ad_account_id=None, account_name=None):
+def fetch_meta_ads_report(ad_account_id=None, account_name=None, selected_window=None):
     selected_account_id = normalize_account_id(ad_account_id or AD_ACCOUNT_ID)
     if not selected_account_id:
         raise ValueError('Missing META_AD_ACCOUNT_ID or selected ad account')
     init_api()
     account = AdAccount(selected_account_id)
-    status_map = fetch_campaign_status(account)
-    adset_status_map = fetch_adset_status(account)
-    ad_status_map = fetch_ad_status(account)
+
+    windows_to_fetch = WINDOWS
+    if selected_window and selected_window in WINDOWS:
+        windows_to_fetch = {selected_window: WINDOWS[selected_window]}
 
     all_rows = []
-    for window_name, params in WINDOWS.items():
-        all_rows.extend(fetch_window(account, window_name, params, status_map, adset_status_map, ad_status_map, selected_account_id, account_name))
+    for window_name, params in windows_to_fetch.items():
+        all_rows.extend(fetch_window(account, window_name, params, selected_account_id, account_name))
 
     df = pd.DataFrame(all_rows)
     if not df.empty:
         df['spend'] = pd.to_numeric(df['spend'], errors='coerce').fillna(0)
-        df['meta_roas'] = pd.to_numeric(df['meta_roas'], errors='coerce')
+        df['meta_roas'] = pd.to_numeric(df['meta_roas'], errors='coerce').fillna(0)
+        df['purchase_value'] = df['spend'] * df['meta_roas']
         for window in df['window'].dropna().unique():
-            mask = df['window'] == window
-            if selected_account_id:
-                mask = mask & (df['account_id'] == selected_account_id)
-            df.loc[mask, 'purchase_value'] = df.loc[mask, 'spend'] * df.loc[mask, 'meta_roas'].fillna(0)
+            mask = (df['window'] == window) & (df['account_id'] == selected_account_id)
             spend_sum = df.loc[mask, 'spend'].sum()
             if spend_sum:
                 df.loc[mask, 'window_roas_weighted'] = df.loc[mask, 'purchase_value'].sum() / spend_sum
