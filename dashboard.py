@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from meta_ads_fetcher import fetch_meta_ads_report
+from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
 
 st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
 
@@ -178,16 +178,36 @@ st.markdown('''
 </div>
 ''', unsafe_allow_html=True)
 
+try:
+    ad_accounts = fetch_business_ad_accounts()
+except Exception as e:
+    ad_accounts = []
+    st.error(f'Could not load ad accounts: {e}')
+
+if ad_accounts:
+    account_labels = [f"{a.get('name')} — {a.get('id')}" for a in ad_accounts]
+    selected_label = st.selectbox('Select Ad Account', account_labels)
+    selected_account = ad_accounts[account_labels.index(selected_label)]
+    selected_account_id = selected_account.get('id')
+    selected_account_name = selected_account.get('name')
+    st.markdown(f'<div class="os-card"><h4>Selected Ad Account</h4><div>{selected_account_name} — {selected_account_id}</div></div>', unsafe_allow_html=True)
+else:
+    selected_account_id = None
+    selected_account_name = None
+    st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
+
 if st.button('Fetch Latest Meta Data'):
     try:
-        df_live = fetch_meta_ads_report()
+        df_live = fetch_meta_ads_report(selected_account_id, selected_account_name)
         df_live.to_csv('meta_ads_report.csv', index=False)
-        st.success('Meta data updated successfully.')
+        st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
         st.error(f'Error fetching Meta data: {e}')
 
 try:
     df = pd.read_csv('meta_ads_report.csv')
+    if selected_account_id and 'account_id' in df.columns:
+        df = df[df['account_id'] == selected_account_id]
     if 'window' in df.columns:
         df['window'] = df['window'].replace({'MTD':'30D','this_month':'30D'})
     for col in ['spend','ctr','cpc','cpm','frequency','roas','purchases','cost_per_purchase','purchase_value','aov','add_to_cart','initiate_checkout','purchase_rate','lpv_rate','atc_rate','manual_roas','meta_roas','clicks','impressions']:
@@ -197,7 +217,7 @@ try:
     window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D'}
     window_df = df[df['window'] == window_map[window_choice]].copy()
     if window_df.empty:
-        st.warning('No data available. Click Fetch Latest Meta Data to generate the report.')
+        st.warning('No data available. Click Fetch Latest Meta Data to generate the report for the selected ad account.')
     else:
         total_spend = window_df['spend'].sum(); total_revenue = window_df['purchase_value'].sum(); overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
         c1,c2,c3,c4 = st.columns(4)
@@ -254,4 +274,4 @@ try:
             st.download_button('Export filtered action plan CSV', filtered[decision_cols].to_csv(index=False), 'action_plan.csv', 'text/csv')
 
 except FileNotFoundError:
-    st.info('Click Fetch Latest Meta Data to generate the first report.')
+    st.info('Click Fetch Latest Meta Data to generate the report for the selected ad account.')
