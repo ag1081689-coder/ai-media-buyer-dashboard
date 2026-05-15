@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
 
 st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
@@ -29,32 +30,23 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-
 
 def safe_num(value, default=0):
     try:
-        if pd.isna(value):
-            return default
+        if pd.isna(value): return default
         return float(value)
     except Exception:
         return default
 
 
-def format_money(value):
-    return f"{safe_num(value):,.0f} EGP"
-
+def format_money(value): return f"{safe_num(value):,.0f} EGP"
 
 def get_creative_diagnosis(row):
     ctr, freq, roas, purchases, cpp = [safe_num(row.get(x)) for x in ['ctr','frequency','manual_roas','purchases','cost_per_purchase']]
     issues, fixes = [], []
-    if ctr < 1:
-        issues.append('Hook issue'); fixes.append('اعمل 5 هووكس جديدة: مشكلة مباشرة، صدمة سعر، إثبات اجتماعي، مقارنة، وافتتاحية UGC.')
-    if freq > 3.5 and roas < 4:
-        issues.append('Visual fatigue'); fixes.append('غير الفيجوال: Thumbnail جديد، أول فريم مختلف، زاوية تصوير جديدة، ووش UGC جديد.')
-    if purchases > 0 and cpp > 300:
-        issues.append('Offer or caption issue'); fixes.append('اكتب كابشن جديد يوضح القيمة، العرض، ضمانات الدفع أو التوصيل، وCTA واضح.')
-    if roas >= 5 and purchases >= 10:
-        issues.append('Winning angle'); fixes.append('اعمل 3 نسخ جديدة من نفس الزاوية الكسبانة وشغلهم في تست Scaling محسوب.')
-    if not issues:
-        issues.append('No major creative issue'); fixes.append('راقب فقط. متغيرش الإعلان الكسبان غير لو Frequency زاد أو ROAS بدأ ينزل.')
+    if ctr < 1: issues.append('Hook issue'); fixes.append('اعمل 5 هووكس جديدة: مشكلة مباشرة، صدمة سعر، إثبات اجتماعي، مقارنة، وافتتاحية UGC.')
+    if freq > 3.5 and roas < 4: issues.append('Visual fatigue'); fixes.append('غير الفيجوال: Thumbnail جديد، أول فريم مختلف، زاوية تصوير جديدة، ووش UGC جديد.')
+    if purchases > 0 and cpp > 300: issues.append('Offer or caption issue'); fixes.append('اكتب كابشن جديد يوضح القيمة، العرض، ضمانات الدفع أو التوصيل، وCTA واضح.')
+    if roas >= 5 and purchases >= 10: issues.append('Winning angle'); fixes.append('اعمل 3 نسخ جديدة من نفس الزاوية الكسبانة وشغلهم في تست Scaling محسوب.')
+    if not issues: issues.append('No major creative issue'); fixes.append('راقب فقط. متغيرش الإعلان الكسبان غير لو Frequency زاد أو ROAS بدأ ينزل.')
     return ', '.join(issues), ' | '.join(fixes)
-
 
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
@@ -63,14 +55,10 @@ def generate_content_pack(row):
     visuals = ['افتتاحية UGC بوش شخص ماسك المنتج في أول ثانيتين.','لقطة قريبة للمنتج مع Overlay للسعر أو الميزة الأساسية.','قبل/بعد أو مشكلة/حل مع Cuts سريعة في أول 3 ثواني.','فيجوال إثبات اجتماعي: Reviews أو Orders أو Reaction من عميل.']
     testing = ['اختبر 3 هووكس على نفس الفيجوال الكسبان عشان تعزل تأثير الهووك.','شغل 2 UGC و2 Static في ABO بميزانية متساوية.','اقفل أي Creative أقل من 1% CTR بعد صرف كافي، وسيب اللي CPA وROAS بتاعه ثابت.','متغيرش الجمهور والكرياتيف في نفس الوقت.']
     scaling = ['لو ROAS ثابت 48 ساعة، زود الميزانية 15-20%.','لو المبيعات ثابتة، اعمل Duplicate للـ Ad Set الكسبان داخل CBO Scaling Campaign.','قبل ما تزود الصرف بقوة، اعمل 3 Variations من نفس الزاوية الكسبانة.','وقف السكيل لو CPA زاد فجأة أو ROAS نزل تحت التارجت يومين ورا بعض.']
-    if 'Hook issue' in issue:
-        hooks = ['غالبًا بتدفع زيادة من غير ما تاخد بالك.','الغلط اللي أغلب الناس بتعمله قبل ما تشتري.','جربته عشان أنت ماتحتارش.','ده اللي هختاره لو بدور على أعلى قيمة مقابل السعر.','متشتريش قبل ما تشوف النقطة دي.']
-    if 'Visual fatigue' in issue:
-        visuals = ['غير أول فريم بالكامل: خلفية جديدة، حركة إيد جديدة، وزاوية منتج مختلفة.','استخدم Creator جديد بنفس العرض لكن بافتتاحية مختلفة.','حوّل من Static لـ UGC أو من UGC لـ Product Demo نظيف.','ضيف حركة في أول ثانية: دخول المنتج في الكادر، Reveal سريع، أو مقارنة مباشرة.']
-    if 'Offer or caption issue' in issue:
-        captions = ['خد قيمة أعلى من غير تعقيد في الطلب. مميزات واضحة، Checkout سهل، وتوصيل سريع.','العرض ده معمول للي عايز يشتري بذكاء، مش يشتري أي منتج وخلاص.','قارن القيمة، شوف المميزات، واطلب قبل ما العرض يخلص.']
+    if 'Hook issue' in issue: hooks = ['غالبًا بتدفع زيادة من غير ما تاخد بالك.','الغلط اللي أغلب الناس بتعمله قبل ما تشتري.','جربته عشان أنت ماتحتارش.','ده اللي هختاره لو بدور على أعلى قيمة مقابل السعر.','متشتريش قبل ما تشوف النقطة دي.']
+    if 'Visual fatigue' in issue: visuals = ['غير أول فريم بالكامل: خلفية جديدة، حركة إيد جديدة، وزاوية منتج مختلفة.','استخدم Creator جديد بنفس العرض لكن بافتتاحية مختلفة.','حوّل من Static لـ UGC أو من UGC لـ Product Demo نظيف.','ضيف حركة في أول ثانية: دخول المنتج في الكادر، Reveal سريع، أو مقارنة مباشرة.']
+    if 'Offer or caption issue' in issue: captions = ['خد قيمة أعلى من غير تعقيد في الطلب. مميزات واضحة، Checkout سهل، وتوصيل سريع.','العرض ده معمول للي عايز يشتري بذكاء، مش يشتري أي منتج وخلاص.','قارن القيمة، شوف المميزات، واطلب قبل ما العرض يخلص.']
     return hooks, captions, visuals, testing, scaling
-
 
 def score_row(row, avg_roas, level='campaign'):
     score, reasons = 0, []
@@ -102,7 +90,6 @@ def score_row(row, avg_roas, level='campaign'):
     if effective_status == 'ACTIVE' and score < 35: action = 'Active but weak. Review now or pause.'
     return score, status, action, reopen, ' | '.join(reasons[:4])
 
-
 def daily_budget_action(row, avg_roas):
     roas, spend, purchases, cpp, ctr, freq = [safe_num(row.get(x)) for x in ['manual_roas','spend','purchases','cost_per_purchase','ctr','frequency']]
     if spend >= 800 and purchases == 0: return 'PAUSE TODAY', 'اقفلها النهارده. صرفت من غير مبيعات.'
@@ -113,10 +100,11 @@ def daily_budget_action(row, avg_roas):
     if cpp and cpp > 400: return 'CUT 20-30%', 'الـ CPA عالي. قلل الصرف وجرب عرض/كابشن أقوى.'
     return 'WATCH', 'راقبها. مفيش قرار عنيف دلوقتي.'
 
-
 def aggregate_level(df, level, overall_roas):
     id_cols = {'campaign':['campaign_name','campaign_status','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_status','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_status','ad_effective_status']}[level]
-    agg = df.groupby(id_cols, as_index=False).agg({'spend':'sum','purchase_value':'sum','purchases':'sum','clicks':'sum','impressions':'sum','frequency':'mean','cost_per_purchase':'mean'})
+    existing = [c for c in id_cols if c in df.columns]
+    if not existing: return pd.DataFrame()
+    agg = df.groupby(existing, as_index=False, dropna=False).agg({'spend':'sum','purchase_value':'sum','purchases':'sum','clicks':'sum','impressions':'sum','frequency':'mean','cost_per_purchase':'mean'})
     agg['manual_roas'] = agg.apply(lambda r: round(r['purchase_value'] / r['spend'], 2) if r['spend'] else 0, axis=1)
     agg['ctr'] = agg.apply(lambda r: round((r['clicks'] / r['impressions']) * 100, 2) if r['impressions'] else 0, axis=1)
     agg[['score','status','next_action','reopen_signal','why']] = agg.apply(lambda r: score_row(r, overall_roas, level), axis=1, result_type='expand')
@@ -124,14 +112,13 @@ def aggregate_level(df, level, overall_roas):
     agg[['today_action','today_reason']] = agg.apply(lambda r: daily_budget_action(r, overall_roas), axis=1, result_type='expand')
     return agg.sort_values('score', ascending=False)
 
-
 def show_table(title, help_text, data, cols):
     st.markdown(f'<div class="table-title">{title}</div><div class="help-text">{help_text}</div>', unsafe_allow_html=True)
     existing_cols = [c for c in cols if c in data.columns]
     st.dataframe(data[existing_cols], use_container_width=True, hide_index=True)
 
-
 def show_alerts(df):
+    if df.empty: return
     pause_count = int((df['today_action'] == 'PAUSE TODAY').sum())
     scale_count = int((df['today_action'] == 'SCALE 15-20%').sum())
     fix_count = int(df['today_action'].isin(['CREATIVE FIX','REFRESH VISUAL']).sum())
@@ -140,42 +127,25 @@ def show_alerts(df):
     b.markdown(f'<div class="os-card alert-good"><h4>Scale Opportunities</h4><div>{scale_count} items can be scaled carefully.</div></div>', unsafe_allow_html=True)
     c.markdown(f'<div class="os-card alert-info"><h4>Creative Fix Queue</h4><div>{fix_count} items need hook / visual refresh.</div></div>', unsafe_allow_html=True)
 
-
 def show_charts(level_df):
     st.markdown('<div class="table-title">Performance Charts</div><div class="help-text">Quick visual read for spend, ROAS, CPA, and score.</div>', unsafe_allow_html=True)
     chart_df = level_df.copy().head(15)
     label = 'campaign_name' if 'campaign_name' in chart_df.columns else chart_df.columns[0]
     chart_df = chart_df.set_index(label)
     c1, c2 = st.columns(2)
-    with c1:
-        st.bar_chart(chart_df[['spend','purchase_value']])
-    with c2:
-        st.bar_chart(chart_df[['manual_roas','score']])
-
+    with c1: st.bar_chart(chart_df[['spend','purchase_value']])
+    with c2: st.bar_chart(chart_df[['manual_roas','score']])
 
 def show_budget_simulator(row):
-    current_spend = safe_num(row.get('spend'))
-    roas = safe_num(row.get('manual_roas'))
+    current_spend = safe_num(row.get('spend')); roas = safe_num(row.get('manual_roas'))
     st.markdown('<div class="table-title">Budget Simulator</div><div class="help-text">Estimate impact before changing budget.</div>', unsafe_allow_html=True)
     pct = st.slider('Budget change %', -50, 100, 20, 5)
-    new_spend = current_spend * (1 + pct / 100)
-    est_revenue = new_spend * roas
+    new_spend = current_spend * (1 + pct / 100); est_revenue = new_spend * roas
     a,b,c = st.columns(3)
-    a.metric('Estimated spend', format_money(new_spend))
-    b.metric('Estimated revenue', format_money(est_revenue))
-    c.metric('Current ROAS assumption', roas)
-
+    a.metric('Estimated spend', format_money(new_spend)); b.metric('Estimated revenue', format_money(est_revenue)); c.metric('Current ROAS assumption', roas)
 
 st.markdown('''
-<div class="smart-hero">
-  <div class="hero-copy">
-    <span class="badge">Orange Performance OS</span>
-    <h1>Turn messy ad numbers into clear daily moves.</h1>
-    <p class="hero-sub">One dashboard to decide what to scale, cut, pause, reopen, and refresh across campaigns, ad sets, and ads.</p>
-    <div class="hero-tov">From data chaos to media buying clarity.</div>
-  </div>
-  <div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div>
-</div>
+<div class="smart-hero"><div class="hero-copy"><span class="badge">Orange Performance OS</span><h1>Turn messy ad numbers into clear daily moves.</h1><p class="hero-sub">One dashboard to decide what to scale, cut, pause, reopen, and refresh across campaigns, ad sets, and ads.</p><div class="hero-tov">From data chaos to media buying clarity.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>
 ''', unsafe_allow_html=True)
 
 try:
@@ -188,90 +158,87 @@ if ad_accounts:
     account_labels = [f"{a.get('name')} — {a.get('id')}" for a in ad_accounts]
     selected_label = st.selectbox('Select Ad Account', account_labels)
     selected_account = ad_accounts[account_labels.index(selected_label)]
-    selected_account_id = selected_account.get('id')
-    selected_account_name = selected_account.get('name')
+    selected_account_id = selected_account.get('id'); selected_account_name = selected_account.get('name')
     st.markdown(f'<div class="os-card"><h4>Selected Ad Account</h4><div>{selected_account_name} — {selected_account_id}</div></div>', unsafe_allow_html=True)
 else:
-    selected_account_id = None
-    selected_account_name = None
+    selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
 if st.button('Fetch Latest Meta Data'):
     try:
         df_live = fetch_meta_ads_report(selected_account_id, selected_account_name)
-        df_live.to_csv('meta_ads_report.csv', index=False)
-        st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
+        if df_live is None or df_live.empty:
+            pd.DataFrame().to_csv('meta_ads_report.csv', index=False)
+            st.warning(f'No Meta data returned for {selected_account_name or selected_account_id}. Try another time window or account.')
+        else:
+            df_live.to_csv('meta_ads_report.csv', index=False)
+            st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
         st.error(f'Error fetching Meta data: {e}')
 
 try:
-    df = pd.read_csv('meta_ads_report.csv')
+    try:
+        df = pd.read_csv('meta_ads_report.csv')
+    except (EmptyDataError, ParserError):
+        st.warning('The saved report is empty or corrupted. Click Fetch Latest Meta Data again for the selected ad account.')
+        st.stop()
+    if df.empty:
+        st.warning('No data saved yet. Click Fetch Latest Meta Data for the selected ad account.')
+        st.stop()
     if selected_account_id and 'account_id' in df.columns:
         df = df[df['account_id'] == selected_account_id]
-    if 'window' in df.columns:
-        df['window'] = df['window'].replace({'MTD':'30D','this_month':'30D'})
+    if df.empty:
+        st.warning('No saved data for this selected ad account. Click Fetch Latest Meta Data.')
+        st.stop()
+    if 'window' in df.columns: df['window'] = df['window'].replace({'MTD':'30D','this_month':'30D'})
     for col in ['spend','ctr','cpc','cpm','frequency','roas','purchases','cost_per_purchase','purchase_value','aov','add_to_cart','initiate_checkout','purchase_rate','lpv_rate','atc_rate','manual_roas','meta_roas','clicks','impressions']:
-        if col in df.columns: df[col] = pd.to_numeric(df[col], errors='coerce')
+        if col in df.columns: df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
     window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month'], default='Today')
     window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D'}
     window_df = df[df['window'] == window_map[window_choice]].copy()
     if window_df.empty:
-        st.warning('No data available. Click Fetch Latest Meta Data to generate the report for the selected ad account.')
+        st.warning('No data available for this window. Try Last 3 Days / Last 7 Days / This Month, or fetch another account.')
     else:
         total_spend = window_df['spend'].sum(); total_revenue = window_df['purchase_value'].sum(); overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
         c1,c2,c3,c4 = st.columns(4)
         c1.metric('Amount spent', format_money(total_spend)); c2.metric('Purchase value', format_money(total_revenue)); c3.metric('Purchase ROAS', overall_roas); c4.metric('Website purchases', int(window_df['purchases'].sum()))
-
         level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
         level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
         level_df = aggregate_level(window_df, level, overall_roas)
+        if level_df.empty:
+            st.warning('No grouped data available for this level.')
+            st.stop()
         show_alerts(level_df)
-
         st.markdown('<div class="filter-card">', unsafe_allow_html=True)
         view_choice = st.segmented_control('View', ['All','Active Only','Scale','Watch','Test/Fix','Kill/Pause','Reopen','Creative Fixes','Today Actions','Charts'], default='Today Actions' if window_choice == 'Today' else 'All')
         col_a,col_b,col_c,col_d = st.columns(4)
         min_score = col_a.slider('Min score', 0, 100, 0, 5); min_roas = col_b.number_input('Min ROAS', min_value=0.0, value=0.0, step=0.5)
         action_filter = col_c.multiselect('Today action', sorted(level_df['today_action'].dropna().unique().tolist()), default=[]); search = col_d.text_input('Search')
         st.markdown('</div>', unsafe_allow_html=True)
-
         filtered = level_df[(level_df['score'] >= min_score) & (level_df['manual_roas'] >= min_roas)].copy()
         name_col = {'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level]; active_col = {'campaign':'campaign_effective_status','adset':'adset_effective_status','ad':'ad_effective_status'}[level]
         if action_filter: filtered = filtered[filtered['today_action'].isin(action_filter)]
-        if search: filtered = filtered[filtered[name_col].str.contains(search, case=False, na=False)]
+        if search: filtered = filtered[filtered[name_col].astype(str).str.contains(search, case=False, na=False)]
         if view_choice == 'Active Only': filtered = filtered[filtered[active_col] == 'ACTIVE']
         elif view_choice in ['Scale','Watch','Test/Fix','Kill/Pause']: filtered = filtered[filtered['status'] == view_choice]
         elif view_choice == 'Reopen': filtered = filtered[filtered['reopen_signal'] == 'YES']
         elif view_choice == 'Creative Fixes': filtered = filtered[filtered['creative_issue'] != 'No major creative issue']
         elif view_choice == 'Today Actions': filtered = filtered[filtered['today_action'] != 'WATCH']
-
         base_cols = {'campaign':['campaign_name','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_effective_status']}[level]
         decision_cols = base_cols + ['score','status','today_action','today_reason','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency']
-        if view_choice == 'Charts':
-            show_charts(level_df)
-        else:
-            show_table(f'{window_choice} — {level_choice} Decision Center', 'Filter the table to decide what to pause, cut, scale, reopen, or fix today.', filtered, decision_cols)
-
+        if view_choice == 'Charts': show_charts(level_df)
+        else: show_table(f'{window_choice} — {level_choice} Decision Center', 'Filter the table to decide what to pause, cut, scale, reopen, or fix today.', filtered, decision_cols)
         if not filtered.empty:
             selected_item = st.selectbox('Select item for action card', filtered[name_col].dropna().tolist())
             selected_row = filtered[filtered[name_col] == selected_item].iloc[0]
             hooks, captions, visuals, testing_plan, scaling_plan = generate_content_pack(selected_row)
-            st.markdown(f'''
-            <div class="action-card"><h3>{selected_item}</h3><div class="action-grid">
-              <div class="action-box"><div class="action-label">Score</div>{selected_row.get('score')}</div>
-              <div class="action-box"><div class="action-label">Status</div>{selected_row.get('status')}</div>
-              <div class="action-box"><div class="action-label">Today action</div>{selected_row.get('today_action')}</div>
-              <div class="action-box"><div class="action-label">Reason</div>{selected_row.get('today_reason')}</div>
-              <div class="action-box"><div class="action-label">Next action</div>{selected_row.get('next_action')}</div>
-              <div class="action-box"><div class="action-label">Creative issue</div>{selected_row.get('creative_issue')}</div>
-            </div></div>
-            ''', unsafe_allow_html=True)
+            st.markdown(f'''<div class="action-card"><h3>{selected_item}</h3><div class="action-grid"><div class="action-box"><div class="action-label">Score</div>{selected_row.get('score')}</div><div class="action-box"><div class="action-label">Status</div>{selected_row.get('status')}</div><div class="action-box"><div class="action-label">Today action</div>{selected_row.get('today_action')}</div><div class="action-box"><div class="action-label">Reason</div>{selected_row.get('today_reason')}</div><div class="action-box"><div class="action-label">Next action</div>{selected_row.get('next_action')}</div><div class="action-box"><div class="action-label">Creative issue</div>{selected_row.get('creative_issue')}</div></div></div>''', unsafe_allow_html=True)
             action_tabs = st.tabs(['Hooks', 'Captions', 'Visual Directions', 'Testing Roadmap', 'Scaling Roadmap', 'Budget Simulator'])
             for tab, items in zip(action_tabs[:5], [hooks, captions, visuals, testing_plan, scaling_plan]):
                 with tab:
                     for item in items: st.write(f'• {item}')
             with action_tabs[5]: show_budget_simulator(selected_row)
             st.download_button('Export filtered action plan CSV', filtered[decision_cols].to_csv(index=False), 'action_plan.csv', 'text/csv')
-
 except FileNotFoundError:
     st.info('Click Fetch Latest Meta Data to generate the report for the selected ad account.')
