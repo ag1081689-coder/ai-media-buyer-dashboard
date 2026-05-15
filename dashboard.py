@@ -6,26 +6,31 @@ st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
 
 st.markdown('''
 <style>
-.stApp {background:#f0f2f5; color:#1c1e21;}
-.block-container {padding-top:1.2rem; padding-bottom:4rem; max-width:1550px;}
-.smart-hero {background:#ffffff; border:1px solid #dadde1; border-radius:14px; padding:20px 24px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.smart-hero h1 {font-size:32px; margin:0; color:#1c1e21;}
-.smart-hero p {color:#606770; font-size:15px; margin:8px 0 0;}
-.badge {display:inline-block; padding:6px 10px; border-radius:999px; background:#e7f3ff; color:#1877f2; font-weight:700; font-size:12px; margin-bottom:10px;}
-[data-testid="stMetric"] {background:#ffffff; border:1px solid #dadde1; border-radius:12px; padding:14px 16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
-[data-testid="stMetricLabel"] {color:#606770; font-size:13px;}
-[data-testid="stMetricValue"] {color:#1c1e21; font-size:27px;}
-.stButton button {border-radius:8px; background:#1877f2; color:white; border:0; font-weight:700; padding:.62rem .95rem;}
-.stButton button:hover {background:#166fe5; color:white;}
-[data-testid="stDataFrame"] {background:#ffffff; border-radius:12px; border:1px solid #dadde1; box-shadow:0 1px 2px rgba(0,0,0,.08); overflow:hidden;}
-.table-title {font-size:21px; font-weight:800; color:#1c1e21; margin:20px 0 6px;}
-.help-text {font-size:14px; color:#606770; margin-bottom:12px;}
-.filter-card {background:#ffffff; border:1px solid #dadde1; border-radius:12px; padding:14px 16px; margin:12px 0 16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.action-card {background:#ffffff; border:1px solid #dadde1; border-left:5px solid #1877f2; border-radius:12px; padding:18px 20px; margin:18px 0; box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.action-card h3 {margin:0 0 8px 0; color:#1c1e21;}
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stToolbar"], .stApp {background:#050505 !important; color:#ffffff !important;}
+[data-testid="stSidebar"] {background:#080808 !important;}
+.block-container {padding-top:1.2rem; padding-bottom:4rem; max-width:1550px; background:#050505 !important;}
+* {color:#ffffff;}
+p, span, label, div {color:#ffffff;}
+.smart-hero {background:linear-gradient(135deg,#0b0b0b,#160d04); border:1px solid rgba(255,122,0,.45); border-radius:16px; padding:20px 24px; margin-bottom:16px; box-shadow:0 18px 55px rgba(0,0,0,.6);}
+.smart-hero h1 {font-size:32px; margin:0; color:#ffffff !important;}
+.smart-hero p {color:#f5f5f5 !important; font-size:15px; margin:8px 0 0;}
+.badge {display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,122,0,.18); color:#ff9f1c !important; font-weight:900; font-size:12px; margin-bottom:10px; border:1px solid rgba(255,122,0,.45);}
+[data-testid="stMetric"] {background:#0f0f0f; border:1px solid rgba(255,122,0,.35); border-radius:14px; padding:14px 16px; box-shadow:0 14px 45px rgba(0,0,0,.45);}
+[data-testid="stMetricLabel"] {color:#ffffff !important; font-size:13px;}
+[data-testid="stMetricValue"] {color:#ff9f1c !important; font-size:27px;}
+.stButton button {border-radius:10px; background:linear-gradient(135deg,#ff7a00,#ff9f1c) !important; color:#050505 !important; border:0; font-weight:900; padding:.62rem .95rem;}
+.stButton button:hover {background:#ffb347 !important; color:#050505 !important;}
+[data-testid="stDataFrame"] {background:#0f0f0f; border-radius:14px; border:1px solid rgba(255,122,0,.3); box-shadow:0 18px 55px rgba(0,0,0,.45); overflow:hidden;}
+.table-title {font-size:21px; font-weight:900; color:#ff9f1c !important; margin:20px 0 6px;}
+.help-text {font-size:14px; color:#ffffff !important; margin-bottom:12px;}
+.filter-card {background:#0f0f0f; border:1px solid rgba(255,122,0,.35); border-radius:14px; padding:14px 16px; margin:12px 0 16px; box-shadow:0 12px 40px rgba(0,0,0,.45);}
+.action-card {background:#0f0f0f; border:1px solid rgba(255,122,0,.35); border-left:5px solid #ff7a00; border-radius:14px; padding:18px 20px; margin:18px 0; box-shadow:0 18px 55px rgba(0,0,0,.45);}
+.action-card h3 {margin:0 0 8px 0; color:#ffffff !important;}
 .action-grid {display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; margin-top:12px;}
-.action-box {background:#f7f8fa; border:1px solid #e4e6eb; border-radius:10px; padding:12px;}
-.action-label {font-size:12px; color:#606770; font-weight:700; text-transform:uppercase; margin-bottom:4px;}
+.action-box {background:#181818; border:1px solid rgba(255,122,0,.25); border-radius:12px; padding:12px; color:#ffffff !important;}
+.action-label {font-size:12px; color:#ff9f1c !important; font-weight:900; text-transform:uppercase; margin-bottom:4px;}
+.stSegmentedControl button, [data-baseweb="tab"] {color:#ffffff !important;}
+input, textarea, select {background:#111111 !important; color:#ffffff !important; border-color:#ff7a00 !important;}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -72,65 +77,17 @@ def get_creative_diagnosis(row):
 
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
-    campaign = str(row.get('campaign_name', 'this campaign'))
-
-    hooks = [
-        'Still comparing options? Start with the one customers keep choosing.',
-        'Before you buy, check why this offer is getting attention.',
-        'This is the simple upgrade your cart was missing.',
-        'Stop scrolling if you want better value without overpaying.',
-        'The product people keep coming back for.'
-    ]
-
-    captions = [
-        'Built for people who want value, speed, and a smooth buying experience. Order now while the offer is still available.',
-        'A clear offer, strong value, and fast decision. See the product details and complete your order today.',
-        'Customers are choosing this for a reason. Check the benefits, compare the value, and order with confidence.'
-    ]
-
-    visuals = [
-        'UGC face-to-camera opening with product in hand during the first 2 seconds.',
-        'Clean product close-up with price/value overlay and one clear benefit.',
-        'Before/after or problem/solution frame with fast cuts in the first 3 seconds.',
-        'Social proof visual: reviews, orders, or customer reaction overlay.'
-    ]
-
-    testing = [
-        'Run 3 hooks against the same winning visual to isolate hook performance.',
-        'Run 2 UGC creatives and 2 static creatives in ABO with equal budget.',
-        'Kill creatives with CTR below 1% after enough spend. Keep winners with stable CPA and ROAS.',
-        'Do not change audience and creative at the same time.'
-    ]
-
-    scaling = [
-        'If ROAS stays stable for 48 hours, increase budget by 15-20%.',
-        'Duplicate winning ad set into a CBO scaling campaign if purchases are consistent.',
-        'Create 3 new variations from the winning angle before increasing spend aggressively.',
-        'Stop scaling if CPA rises sharply or ROAS drops below target for 2 consecutive days.'
-    ]
-
+    hooks = ['Still comparing options? Start with the one customers keep choosing.','Before you buy, check why this offer is getting attention.','This is the simple upgrade your cart was missing.','Stop scrolling if you want better value without overpaying.','The product people keep coming back for.']
+    captions = ['Built for people who want value, speed, and a smooth buying experience. Order now while the offer is still available.','A clear offer, strong value, and fast decision. See the product details and complete your order today.','Customers are choosing this for a reason. Check the benefits, compare the value, and order with confidence.']
+    visuals = ['UGC face-to-camera opening with product in hand during the first 2 seconds.','Clean product close-up with price/value overlay and one clear benefit.','Before/after or problem/solution frame with fast cuts in the first 3 seconds.','Social proof visual: reviews, orders, or customer reaction overlay.']
+    testing = ['Run 3 hooks against the same winning visual to isolate hook performance.','Run 2 UGC creatives and 2 static creatives in ABO with equal budget.','Kill creatives with CTR below 1% after enough spend. Keep winners with stable CPA and ROAS.','Do not change audience and creative at the same time.']
+    scaling = ['If ROAS stays stable for 48 hours, increase budget by 15-20%.','Duplicate winning ad set into a CBO scaling campaign if purchases are consistent.','Create 3 new variations from the winning angle before increasing spend aggressively.','Stop scaling if CPA rises sharply or ROAS drops below target for 2 consecutive days.']
     if 'Hook issue' in issue:
-        hooks = [
-            'You are probably overpaying for this without knowing.',
-            'The mistake most people make before buying this.',
-            'I tested this so you do not have to.',
-            'This is what I would buy if I wanted the best value.',
-            'Do not buy before checking this one thing.'
-        ]
+        hooks = ['You are probably overpaying for this without knowing.','The mistake most people make before buying this.','I tested this so you do not have to.','This is what I would buy if I wanted the best value.','Do not buy before checking this one thing.']
     if 'Visual fatigue' in issue:
-        visuals = [
-            'Change the first frame completely. New background, new hand movement, new product angle.',
-            'Use a new creator face. Keep the same offer but change the opening scene.',
-            'Switch from static to UGC or from UGC to clean product demo.',
-            'Add motion in the first second: hand enters frame, product reveal, or quick comparison.'
-        ]
+        visuals = ['Change the first frame completely. New background, new hand movement, new product angle.','Use a new creator face. Keep the same offer but change the opening scene.','Switch from static to UGC or from UGC to clean product demo.','Add motion in the first second: hand enters frame, product reveal, or quick comparison.']
     if 'Offer or caption issue' in issue:
-        captions = [
-            'Get more value without complicating your order. Clear benefits, easy checkout, and fast delivery.',
-            'This offer is built for people who want a smart purchase, not just another product.',
-            'Compare the value, check the benefits, and order while the offer is still active.'
-        ]
-
+        captions = ['Get more value without complicating your order. Clear benefits, easy checkout, and fast delivery.','This offer is built for people who want a smart purchase, not just another product.','Compare the value, check the benefits, and order while the offer is still active.']
     return hooks, captions, visuals, testing, scaling
 
 
@@ -144,7 +101,6 @@ def score_campaign(row, overall_roas):
     frequency = safe_num(row.get('frequency'))
     cpp = safe_num(row.get('cost_per_purchase'))
     campaign_status = str(row.get('campaign_effective_status', ''))
-
     if roas >= overall_roas * 1.2 and purchases >= 5:
         score += 35; reasons.append('ROAS above account average')
     elif roas >= overall_roas and purchases >= 3:
@@ -177,7 +133,6 @@ def score_campaign(row, overall_roas):
         score -= 10; reasons.append('High cost per purchase')
     if spend < 500:
         score = min(score, 45); reasons.append('Low spend, decision not confirmed')
-
     score = max(0, min(100, round(score)))
     if score >= 80:
         status = 'Scale'; action = 'Scale carefully: raise budget 15-20% or duplicate into CBO.'
@@ -187,7 +142,6 @@ def score_campaign(row, overall_roas):
         status = 'Test/Fix'; action = 'Test new hooks, captions, or visuals before scaling.'
     else:
         status = 'Kill/Pause'; action = 'Reduce budget or pause if spend is enough.'
-
     reopen = 'No'
     if campaign_status != 'ACTIVE' and score >= 70:
         reopen = 'YES'; action = 'This campaign is off but has strong past data. Reopen with a controlled test budget.'
@@ -204,9 +158,9 @@ def show_table(title, help_text, data, cols):
 
 st.markdown('''
 <div class="smart-hero">
-  <span class="badge">Meta Ads Decision Dashboard</span>
+  <span class="badge">Orange Performance OS</span>
   <h1>AI Media Buyer Dashboard</h1>
-  <p>Use filters to switch between campaign status, action type, creative problems, and performance views.</p>
+  <p>Black and orange decision workspace for campaign scoring, creative fixes, testing plans, and scaling actions.</p>
 </div>
 ''', unsafe_allow_html=True)
 
@@ -226,24 +180,20 @@ try:
     for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-
     window_choice = st.segmented_control('Time window', ['Last 3 Days', 'Last 7 Days', 'This Month'], default='This Month')
     window_map = {'Last 3 Days': '3D', 'Last 7 Days': '7D', 'This Month': '30D'}
     window_df = df[df['window'] == window_map[window_choice]].copy()
-
     if window_df.empty:
         st.warning('No data available.')
     else:
         total_spend = window_df['spend'].sum()
         total_revenue = window_df['purchase_value'].sum()
         overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
-
         c1, c2, c3, c4 = st.columns(4)
         c1.metric('Amount spent', format_money(total_spend))
         c2.metric('Purchase value', format_money(total_revenue))
         c3.metric('Purchase ROAS', overall_roas)
         c4.metric('Website purchases', int(window_df['purchases'].sum()))
-
         campaign_df = window_df.groupby(['campaign_name', 'campaign_status', 'campaign_effective_status'], as_index=False).agg({'spend': 'sum','purchase_value': 'sum','purchases': 'sum','clicks': 'sum','impressions': 'sum','frequency': 'mean','cost_per_purchase': 'mean'})
         campaign_df['manual_roas'] = campaign_df.apply(lambda r: round(r['purchase_value'] / r['spend'], 2) if r['spend'] else 0, axis=1)
         campaign_df['ctr'] = campaign_df.apply(lambda r: round((r['clicks'] / r['impressions']) * 100, 2) if r['impressions'] else 0, axis=1)
@@ -251,7 +201,6 @@ try:
         campaign_df[['score', 'status', 'next_action', 'reopen_signal', 'why']] = scored_rows
         campaign_df[['creative_issue', 'creative_fix']] = campaign_df.apply(lambda r: pd.Series(get_creative_diagnosis(r)), axis=1)
         campaign_df = campaign_df.sort_values('score', ascending=False)
-
         st.markdown('<div class="filter-card">', unsafe_allow_html=True)
         view_choice = st.segmented_control('View', ['All Campaigns', 'Active Only', 'Scale', 'Watch', 'Test/Fix', 'Kill/Pause', 'Reopen', 'Creative Fixes', 'Ad Level'], default='All Campaigns')
         col_a, col_b, col_c, col_d = st.columns(4)
@@ -260,7 +209,6 @@ try:
         min_roas = col_c.number_input('Min ROAS', min_value=0.0, value=0.0, step=0.5)
         search = col_d.text_input('Search campaign')
         st.markdown('</div>', unsafe_allow_html=True)
-
         filtered = campaign_df.copy()
         filtered = filtered[filtered['score'] >= min_score]
         filtered = filtered[filtered['manual_roas'] >= min_roas]
@@ -268,7 +216,6 @@ try:
             filtered = filtered[filtered['campaign_effective_status'].isin(status_filter)]
         if search:
             filtered = filtered[filtered['campaign_name'].str.contains(search, case=False, na=False)]
-
         if view_choice == 'Active Only':
             filtered = filtered[filtered['campaign_effective_status'] == 'ACTIVE']
         elif view_choice in ['Scale', 'Watch', 'Test/Fix', 'Kill/Pause']:
@@ -277,9 +224,7 @@ try:
             filtered = filtered[filtered['reopen_signal'] == 'YES']
         elif view_choice == 'Creative Fixes':
             filtered = filtered[filtered['creative_issue'] != 'No major creative issue']
-
         score_cols = ['campaign_name','campaign_effective_status','score','status','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency']
-
         if view_choice == 'Ad Level':
             ad_filtered = window_df.copy()
             if search:
@@ -288,12 +233,10 @@ try:
             show_table('Ad Level Performance', 'Use this when you want to inspect specific ad sets or ads.', ad_filtered, display_cols)
         else:
             show_table(view_choice, 'Filtered campaign decision table. Change the filters above to narrow the view.', filtered, score_cols)
-
             if not filtered.empty:
                 selected_campaign = st.selectbox('Select campaign for action card', filtered['campaign_name'].tolist())
                 selected_row = filtered[filtered['campaign_name'] == selected_campaign].iloc[0]
                 hooks, captions, visuals, testing_plan, scaling_plan = generate_content_pack(selected_row)
-
                 st.markdown(f'''
                 <div class="action-card">
                   <h3>{selected_campaign}</h3>
@@ -305,7 +248,6 @@ try:
                   </div>
                 </div>
                 ''', unsafe_allow_html=True)
-
                 action_tabs = st.tabs(['Hooks', 'Captions', 'Visual Directions', 'Testing Roadmap', 'Scaling Roadmap'])
                 with action_tabs[0]:
                     for item in hooks:
@@ -322,9 +264,7 @@ try:
                 with action_tabs[4]:
                     for item in scaling_plan:
                         st.write(f'• {item}')
-
                 export_df = filtered[score_cols].copy()
                 st.download_button('Export filtered action plan CSV', export_df.to_csv(index=False), 'action_plan.csv', 'text/csv')
-
 except FileNotFoundError:
     st.info('Click Fetch Latest Meta Data to generate the first report.')
