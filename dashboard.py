@@ -59,35 +59,60 @@ def get_creative_diagnosis(row):
 
     if ctr < 1:
         issues.append('Hook issue')
-        fixes.append('Create 5 new first-line hooks: problem, price shock, proof, comparison, UGC reaction.')
+        fixes.append('اعمل 5 هووكس جديدة: مشكلة مباشرة، صدمة سعر، إثبات اجتماعي، مقارنة، وافتتاحية UGC.')
     if freq > 3.5 and roas < 4:
         issues.append('Visual fatigue')
-        fixes.append('Refresh thumbnail, opening frame, product shot, and UGC face.')
+        fixes.append('غير الفيجوال: Thumbnail جديد، أول فريم مختلف، زاوية تصوير جديدة، ووش UGC جديد.')
     if purchases > 0 and cpp > 300:
         issues.append('Offer or caption issue')
-        fixes.append('Rewrite caption with value stack, payment/delivery reassurance, and clear CTA.')
+        fixes.append('اكتب كابشن جديد يوضح القيمة، العرض، ضمانات الدفع أو التوصيل، وCTA واضح.')
     if roas >= 5 and purchases >= 10:
         issues.append('Winning angle')
-        fixes.append('Create 3 variations from the winning angle and duplicate into a controlled scaling test.')
+        fixes.append('اعمل 3 نسخ جديدة من نفس الزاوية الكسبانة وشغلهم في تست Scaling محسوب.')
     if not issues:
         issues.append('No major creative issue')
-        fixes.append('Keep monitoring. Do not change the winning ad unless frequency rises or ROAS drops.')
+        fixes.append('راقب فقط. متغيرش الإعلان الكسبان غير لو Frequency زاد أو ROAS بدأ ينزل.')
     return ', '.join(issues), ' | '.join(fixes)
 
 
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
-    hooks = ['Still comparing options? Start with the one customers keep choosing.','Before you buy, check why this offer is getting attention.','This is the simple upgrade your cart was missing.','Stop scrolling if you want better value without overpaying.','The product people keep coming back for.']
-    captions = ['Built for people who want value, speed, and a smooth buying experience. Order now while the offer is still available.','A clear offer, strong value, and fast decision. See the product details and complete your order today.','Customers are choosing this for a reason. Check the benefits, compare the value, and order with confidence.']
-    visuals = ['UGC face-to-camera opening with product in hand during the first 2 seconds.','Clean product close-up with price/value overlay and one clear benefit.','Before/after or problem/solution frame with fast cuts in the first 3 seconds.','Social proof visual: reviews, orders, or customer reaction overlay.']
-    testing = ['Run 3 hooks against the same winning visual to isolate hook performance.','Run 2 UGC creatives and 2 static creatives in ABO with equal budget.','Kill creatives with CTR below 1% after enough spend. Keep winners with stable CPA and ROAS.','Do not change audience and creative at the same time.']
-    scaling = ['If ROAS stays stable for 48 hours, increase budget by 15-20%.','Duplicate winning ad set into a CBO scaling campaign if purchases are consistent.','Create 3 new variations from the winning angle before increasing spend aggressively.','Stop scaling if CPA rises sharply or ROAS drops below target for 2 consecutive days.']
+    hooks = [
+        'لسه بتقارن؟ ابدأ بالاختيار اللي العملاء بيرجعوله كل مرة.',
+        'قبل ما تشتري، شوف ليه العرض ده واخد اهتمام.',
+        'الترقية البسيطة اللي كانت ناقصة طلبك.',
+        'وقف هنا لو عايز قيمة أعلى من غير ما تدفع زيادة.',
+        'المنتج اللي الناس بتطلبه أكتر من مرة.'
+    ]
+    captions = [
+        'اختيار معمول للناس اللي عايزة قيمة واضحة وتجربة شراء سهلة وسريعة. اطلب دلوقتي قبل انتهاء العرض.',
+        'عرض واضح، قيمة قوية، وقرار شراء أسهل. شوف التفاصيل وكمل طلبك النهارده.',
+        'العملاء بيختاروه لسبب. قارن القيمة، شوف المميزات، واطلب بثقة.'
+    ]
+    visuals = [
+        'افتتاحية UGC بوش شخص ماسك المنتج في أول ثانيتين.',
+        'لقطة قريبة للمنتج مع Overlay للسعر أو الميزة الأساسية.',
+        'قبل/بعد أو مشكلة/حل مع Cuts سريعة في أول 3 ثواني.',
+        'فيجوال إثبات اجتماعي: Reviews أو Orders أو Reaction من عميل.'
+    ]
+    testing = [
+        'اختبر 3 هووكس على نفس الفيجوال الكسبان عشان تعزل تأثير الهووك.',
+        'شغل 2 UGC و2 Static في ABO بميزانية متساوية.',
+        'اقفل أي Creative أقل من 1% CTR بعد صرف كافي، وسيب اللي CPA وROAS بتاعه ثابت.',
+        'متغيرش الجمهور والكرياتيف في نفس الوقت.'
+    ]
+    scaling = [
+        'لو ROAS ثابت 48 ساعة، زود الميزانية 15-20%.',
+        'لو المبيعات ثابتة، اعمل Duplicate للـ Ad Set الكسبان داخل CBO Scaling Campaign.',
+        'قبل ما تزود الصرف بقوة، اعمل 3 Variations من نفس الزاوية الكسبانة.',
+        'وقف السكيل لو CPA زاد فجأة أو ROAS نزل تحت التارجت يومين ورا بعض.'
+    ]
     if 'Hook issue' in issue:
-        hooks = ['You are probably overpaying for this without knowing.','The mistake most people make before buying this.','I tested this so you do not have to.','This is what I would buy if I wanted the best value.','Do not buy before checking this one thing.']
+        hooks = ['غالبًا بتدفع زيادة من غير ما تاخد بالك.','الغلط اللي أغلب الناس بتعمله قبل ما تشتري.','جربته عشان أنت ماتحتارش.','ده اللي هختاره لو بدور على أعلى قيمة مقابل السعر.','متشتريش قبل ما تشوف النقطة دي.']
     if 'Visual fatigue' in issue:
-        visuals = ['Change the first frame completely. New background, new hand movement, new product angle.','Use a new creator face. Keep the same offer but change the opening scene.','Switch from static to UGC or from UGC to clean product demo.','Add motion in the first second: hand enters frame, product reveal, or quick comparison.']
+        visuals = ['غير أول فريم بالكامل: خلفية جديدة، حركة إيد جديدة، وزاوية منتج مختلفة.','استخدم Creator جديد بنفس العرض لكن بافتتاحية مختلفة.','حوّل من Static لـ UGC أو من UGC لـ Product Demo نظيف.','ضيف حركة في أول ثانية: دخول المنتج في الكادر، Reveal سريع، أو مقارنة مباشرة.']
     if 'Offer or caption issue' in issue:
-        captions = ['Get more value without complicating your order. Clear benefits, easy checkout, and fast delivery.','This offer is built for people who want a smart purchase, not just another product.','Compare the value, check the benefits, and order while the offer is still active.']
+        captions = ['خد قيمة أعلى من غير تعقيد في الطلب. مميزات واضحة، Checkout سهل، وتوصيل سريع.','العرض ده معمول للي عايز يشتري بذكاء، مش يشتري أي منتج وخلاص.','قارن القيمة، شوف المميزات، واطلب قبل ما العرض يخلص.']
     return hooks, captions, visuals, testing, scaling
 
 
