@@ -21,6 +21,11 @@ st.markdown('''
 .table-title {font-size:21px; font-weight:800; color:#1c1e21; margin:20px 0 6px;}
 .help-text {font-size:14px; color:#606770; margin-bottom:12px;}
 .filter-card {background:#ffffff; border:1px solid #dadde1; border-radius:12px; padding:14px 16px; margin:12px 0 16px; box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.action-card {background:#ffffff; border:1px solid #dadde1; border-left:5px solid #1877f2; border-radius:12px; padding:18px 20px; margin:18px 0; box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.action-card h3 {margin:0 0 8px 0; color:#1c1e21;}
+.action-grid {display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; margin-top:12px;}
+.action-box {background:#f7f8fa; border:1px solid #e4e6eb; border-radius:10px; padding:12px;}
+.action-label {font-size:12px; color:#606770; font-weight:700; text-transform:uppercase; margin-bottom:4px;}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -63,6 +68,70 @@ def get_creative_diagnosis(row):
         issues.append('No major creative issue')
         fixes.append('Keep monitoring. Do not change the winning ad unless frequency rises or ROAS drops.')
     return ', '.join(issues), ' | '.join(fixes)
+
+
+def generate_content_pack(row):
+    issue = str(row.get('creative_issue', ''))
+    campaign = str(row.get('campaign_name', 'this campaign'))
+
+    hooks = [
+        'Still comparing options? Start with the one customers keep choosing.',
+        'Before you buy, check why this offer is getting attention.',
+        'This is the simple upgrade your cart was missing.',
+        'Stop scrolling if you want better value without overpaying.',
+        'The product people keep coming back for.'
+    ]
+
+    captions = [
+        'Built for people who want value, speed, and a smooth buying experience. Order now while the offer is still available.',
+        'A clear offer, strong value, and fast decision. See the product details and complete your order today.',
+        'Customers are choosing this for a reason. Check the benefits, compare the value, and order with confidence.'
+    ]
+
+    visuals = [
+        'UGC face-to-camera opening with product in hand during the first 2 seconds.',
+        'Clean product close-up with price/value overlay and one clear benefit.',
+        'Before/after or problem/solution frame with fast cuts in the first 3 seconds.',
+        'Social proof visual: reviews, orders, or customer reaction overlay.'
+    ]
+
+    testing = [
+        'Run 3 hooks against the same winning visual to isolate hook performance.',
+        'Run 2 UGC creatives and 2 static creatives in ABO with equal budget.',
+        'Kill creatives with CTR below 1% after enough spend. Keep winners with stable CPA and ROAS.',
+        'Do not change audience and creative at the same time.'
+    ]
+
+    scaling = [
+        'If ROAS stays stable for 48 hours, increase budget by 15-20%.',
+        'Duplicate winning ad set into a CBO scaling campaign if purchases are consistent.',
+        'Create 3 new variations from the winning angle before increasing spend aggressively.',
+        'Stop scaling if CPA rises sharply or ROAS drops below target for 2 consecutive days.'
+    ]
+
+    if 'Hook issue' in issue:
+        hooks = [
+            'You are probably overpaying for this without knowing.',
+            'The mistake most people make before buying this.',
+            'I tested this so you do not have to.',
+            'This is what I would buy if I wanted the best value.',
+            'Do not buy before checking this one thing.'
+        ]
+    if 'Visual fatigue' in issue:
+        visuals = [
+            'Change the first frame completely. New background, new hand movement, new product angle.',
+            'Use a new creator face. Keep the same offer but change the opening scene.',
+            'Switch from static to UGC or from UGC to clean product demo.',
+            'Add motion in the first second: hand enters frame, product reveal, or quick comparison.'
+        ]
+    if 'Offer or caption issue' in issue:
+        captions = [
+            'Get more value without complicating your order. Clear benefits, easy checkout, and fast delivery.',
+            'This offer is built for people who want a smart purchase, not just another product.',
+            'Compare the value, check the benefits, and order while the offer is still active.'
+        ]
+
+    return hooks, captions, visuals, testing, scaling
 
 
 def score_campaign(row, overall_roas):
@@ -219,6 +288,43 @@ try:
             show_table('Ad Level Performance', 'Use this when you want to inspect specific ad sets or ads.', ad_filtered, display_cols)
         else:
             show_table(view_choice, 'Filtered campaign decision table. Change the filters above to narrow the view.', filtered, score_cols)
+
+            if not filtered.empty:
+                selected_campaign = st.selectbox('Select campaign for action card', filtered['campaign_name'].tolist())
+                selected_row = filtered[filtered['campaign_name'] == selected_campaign].iloc[0]
+                hooks, captions, visuals, testing_plan, scaling_plan = generate_content_pack(selected_row)
+
+                st.markdown(f'''
+                <div class="action-card">
+                  <h3>{selected_campaign}</h3>
+                  <div class="action-grid">
+                    <div class="action-box"><div class="action-label">Score</div>{selected_row.get('score')}</div>
+                    <div class="action-box"><div class="action-label">Status</div>{selected_row.get('status')}</div>
+                    <div class="action-box"><div class="action-label">Next action</div>{selected_row.get('next_action')}</div>
+                    <div class="action-box"><div class="action-label">Creative issue</div>{selected_row.get('creative_issue')}</div>
+                  </div>
+                </div>
+                ''', unsafe_allow_html=True)
+
+                action_tabs = st.tabs(['Hooks', 'Captions', 'Visual Directions', 'Testing Roadmap', 'Scaling Roadmap'])
+                with action_tabs[0]:
+                    for item in hooks:
+                        st.write(f'• {item}')
+                with action_tabs[1]:
+                    for item in captions:
+                        st.write(f'• {item}')
+                with action_tabs[2]:
+                    for item in visuals:
+                        st.write(f'• {item}')
+                with action_tabs[3]:
+                    for item in testing_plan:
+                        st.write(f'• {item}')
+                with action_tabs[4]:
+                    for item in scaling_plan:
+                        st.write(f'• {item}')
+
+                export_df = filtered[score_cols].copy()
+                st.download_button('Export filtered action plan CSV', export_df.to_csv(index=False), 'action_plan.csv', 'text/csv')
 
 except FileNotFoundError:
     st.info('Click Fetch Latest Meta Data to generate the first report.')
