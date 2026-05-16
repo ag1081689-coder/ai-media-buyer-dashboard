@@ -16,6 +16,9 @@ WINDOWS = {
     '3D': {'date_preset': 'last_3d'},
     '7D': {'date_preset': 'last_7d'},
     'MTD': {'date_preset': 'this_month'},
+    '30D': {'date_preset': 'this_month'},
+    'LAST_MONTH': {'date_preset': 'last_month'},
+    'THIS_YEAR': {'date_preset': 'this_year'},
 }
 
 
