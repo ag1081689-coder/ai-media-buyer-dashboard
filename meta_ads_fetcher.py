@@ -1,4 +1,6 @@
 import os
+import calendar
+from datetime import date
 from dotenv import load_dotenv
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.adaccount import AdAccount
@@ -11,15 +13,37 @@ ACCESS_TOKEN = os.getenv('META_ACCESS_TOKEN')
 AD_ACCOUNT_ID = os.getenv('META_AD_ACCOUNT_ID')
 BUSINESS_ID = os.getenv('META_BUSINESS_ID')
 
-WINDOWS = {
-    'TODAY': {'date_preset': 'today'},
-    '3D': {'date_preset': 'last_3d'},
-    '7D': {'date_preset': 'last_7d'},
-    'MTD': {'date_preset': 'this_month'},
-    '30D': {'date_preset': 'this_month'},
-    'LAST_MONTH': {'date_preset': 'last_month'},
-    'THIS_YEAR': {'date_preset': 'this_year'},
-}
+
+def build_windows():
+    current_year = date.today().year
+    today = date.today()
+    windows = {
+        'TODAY': {'date_preset': 'today'},
+        '3D': {'date_preset': 'last_3d'},
+        '7D': {'date_preset': 'last_7d'},
+        'MTD': {'date_preset': 'this_month'},
+        '30D': {'date_preset': 'this_month'},
+        'LAST_MONTH': {'date_preset': 'last_month'},
+        'THIS_YEAR': {'date_preset': 'this_year'},
+    }
+    for month in range(1, 13):
+        last_day = calendar.monthrange(current_year, month)[1]
+        since = date(current_year, month, 1)
+        until = date(current_year, month, last_day)
+        if since > today:
+            continue
+        if until > today:
+            until = today
+        windows[f'MONTH_{month:02d}'] = {
+            'time_range': {
+                'since': since.strftime('%Y-%m-%d'),
+                'until': until.strftime('%Y-%m-%d'),
+            }
+        }
+    return windows
+
+
+WINDOWS = build_windows()
 
 
 def init_api():
