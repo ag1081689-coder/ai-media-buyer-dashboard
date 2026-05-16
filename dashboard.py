@@ -26,6 +26,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-
 ''', unsafe_allow_html=True)
 
 TAX_NET_RATE = 0.86
+MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+MONTH_WINDOW_MAP = {m: f'MONTH_{i:02d}' for i, m in enumerate(MONTHS, start=1)}
 
 
 def safe_num(value, default=0):
@@ -253,9 +255,22 @@ else:
     selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
+fetch_window_choice = st.selectbox('Fetch window from Meta', ['All saved windows','Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'])
+fetch_specific_month = None
+if fetch_window_choice == 'Specific Month':
+    fetch_specific_month = st.selectbox('Select Month to Fetch', MONTHS)
+
 if st.button('Fetch Latest Meta Data'):
     try:
-        df_live = fetch_meta_ads_report(selected_account_id, selected_account_name)
+        selected_window = None
+        if fetch_window_choice == 'Today': selected_window = 'TODAY'
+        elif fetch_window_choice == 'Last 3 Days': selected_window = '3D'
+        elif fetch_window_choice == 'Last 7 Days': selected_window = '7D'
+        elif fetch_window_choice == 'This Month': selected_window = '30D'
+        elif fetch_window_choice == 'Last Month': selected_window = 'LAST_MONTH'
+        elif fetch_window_choice == 'This Year': selected_window = 'THIS_YEAR'
+        elif fetch_window_choice == 'Specific Month': selected_window = MONTH_WINDOW_MAP.get(fetch_specific_month)
+        df_live = fetch_meta_ads_report(selected_account_id, selected_account_name, selected_window=selected_window)
         if df_live is None or df_live.empty:
             st.warning(f'No Meta data returned for {selected_account_name or selected_account_id}. Try another time window or account.')
         else:
@@ -286,12 +301,15 @@ try:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         else:
             df[col] = 0
-    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month'], default='Today')
-    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D'}
-    selected_window_value = window_map.get(window_choice, 'TODAY')
+    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Today')
+    report_specific_month = None
+    if window_choice == 'Specific Month':
+        report_specific_month = st.selectbox('Report Month', MONTHS, key='report_month')
+    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
+    selected_window_value = MONTH_WINDOW_MAP.get(report_specific_month) if window_choice == 'Specific Month' else window_map.get(window_choice, 'TODAY')
     window_df = df[df['window'] == selected_window_value].copy()
     if window_df.empty:
-        st.warning('No data available for this window. Try Last 3 Days / Last 7 Days / This Month, or fetch another account.')
+        st.warning('No data available for this window. Fetch this window first or try another account.')
     else:
         total_spend = window_df['spend'].sum()
         total_revenue = window_df['purchase_value'].sum()
