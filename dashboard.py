@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
+from ui.kpi_cards import render_kpi_cards
 
 st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
 
@@ -16,8 +17,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-
 .hero-copy {position:relative; z-index:2;}.smart-hero h1 {font-size:54px; line-height:1.02; margin:0; color:#ffffff !important; letter-spacing:-1.8px; max-width:760px;}.hero-sub {color:#f5f5f5 !important; font-size:18px; margin:18px 0 0; max-width:720px; line-height:1.6;}.hero-tov {color:#ff9f1c !important; font-size:18px; font-weight:900; margin-top:16px;}.badge {display:inline-block; padding:8px 14px; border-radius:999px; background:rgba(255,122,0,.18); color:#ff9f1c !important; font-weight:900; font-size:12px; margin-bottom:14px; border:1px solid rgba(255,122,0,.45); letter-spacing:.5px;}
 .counter-wrap {position:relative; z-index:2; display:flex; justify-content:center; align-items:center; min-height:230px;}.counter-orb {width:230px; height:230px; border-radius:50%; background:radial-gradient(circle,#1f1308 0%,#070707 65%); border:1px solid rgba(255,122,0,.55); box-shadow:0 0 0 12px rgba(255,122,0,.05), 0 0 80px rgba(255,122,0,.38); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden;}.counter-orb:before {content:''; position:absolute; inset:-40%; background:conic-gradient(from 0deg, transparent, #ff7a00, transparent 35%); animation:spin 2.2s linear infinite;}.counter-orb:after {content:''; position:absolute; inset:10px; border-radius:50%; background:#090909; border:1px solid rgba(255,122,0,.25);}.counter-number {position:relative; z-index:3; font-size:70px; font-weight:1000; color:#ff9f1c !important; line-height:1; animation:countUp 2.3s steps(99) forwards; counter-reset:num var(--num);}.counter-number:after {content:counter(num);}.counter-label {position:relative; z-index:3; margin-top:10px; font-size:13px; color:#ffffff !important; text-transform:uppercase; letter-spacing:1.8px; font-weight:800;}
 @keyframes countUp {from {--num:1;} to {--num:100;}}@keyframes spin {to {transform:rotate(360deg);}}@keyframes scan {0% {transform:translateX(-100%);} 45%,100% {transform:translateX(100%);}}
-[data-testid="stMetric"], .os-card, .filter-card, .action-card {background:#0f0f0f; border:1px solid rgba(255,122,0,.35); border-radius:16px; box-shadow:0 14px 45px rgba(0,0,0,.45);}
-[data-testid="stMetric"] {padding:14px 16px;}[data-testid="stMetricLabel"] {color:#ffffff !important; font-size:13px;}[data-testid="stMetricValue"] {color:#ff9f1c !important; font-size:27px;}
+.os-card, .filter-card, .action-card {background:#0f0f0f; border:1px solid rgba(255,122,0,.35); border-radius:16px; box-shadow:0 14px 45px rgba(0,0,0,.45);}
 .stButton button {border-radius:12px; background:linear-gradient(135deg,#ff7a00,#ff9f1c) !important; color:#050505 !important; border:0; font-weight:900; padding:.7rem 1.1rem;}.stButton button:hover {background:#ffb347 !important; color:#050505 !important;}
 [data-testid="stDataFrame"] {background:#0f0f0f; border-radius:14px; border:1px solid rgba(255,122,0,.3); box-shadow:0 18px 55px rgba(0,0,0,.45); overflow:hidden;}
 .table-title {font-size:21px; font-weight:900; color:#ff9f1c !important; margin:20px 0 6px;}.help-text {font-size:14px; color:#ffffff !important; margin-bottom:12px;}.filter-card {padding:14px 16px; margin:12px 0 16px;}.action-card {border-left:5px solid #ff7a00; padding:18px 20px; margin:18px 0;}.action-card h3 {margin:0 0 8px; color:#ffffff !important;}.action-grid {display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin-top:12px;}.action-box {background:#181818; border:1px solid rgba(255,122,0,.25); border-radius:12px; padding:12px; color:#ffffff !important;}.action-label {font-size:12px; color:#ff9f1c !important; font-weight:900; text-transform:uppercase; margin-bottom:4px;}.os-card {padding:16px; margin:12px 0;}.os-card h4 {margin:0 0 8px; color:#ff9f1c !important;}.alert-hot {border-left:5px solid #ff3b30;}.alert-good {border-left:5px solid #ff9f1c;}.alert-info {border-left:5px solid #64748b;}.stSegmentedControl button, [data-baseweb="tab"] {color:#ffffff !important;}input, textarea, select {background:#111111 !important; color:#ffffff !important; border-color:#ff7a00 !important;}
@@ -29,7 +29,6 @@ TAX_NET_RATE = 0.86
 MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 MONTH_WINDOW_MAP = {m: f'MONTH_{i:02d}' for i, m in enumerate(MONTHS, start=1)}
 
-
 def safe_num(value, default=0):
     try:
         if pd.isna(value):
@@ -38,10 +37,8 @@ def safe_num(value, default=0):
     except Exception:
         return default
 
-
 def format_money(value):
     return f"{safe_num(value):,.0f} EGP"
-
 
 def get_creative_diagnosis(row):
     ctr, freq, roas, purchases, cpp = [safe_num(row.get(x)) for x in ['ctr','frequency','manual_roas','purchases','cost_per_purchase']]
@@ -58,7 +55,6 @@ def get_creative_diagnosis(row):
         issues.append('No major creative issue'); fixes.append('راقب فقط. متغيرش الإعلان الكسبان غير لو Frequency زاد أو ROAS بدأ ينزل.')
     return ', '.join(issues), ' | '.join(fixes)
 
-
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
     hooks = ['لسه بتقارن؟ ابدأ بالاختيار اللي العملاء بيرجعوله كل مرة.','قبل ما تشتري، شوف ليه العرض ده واخد اهتمام.','الترقية البسيطة اللي كانت ناقصة طلبك.','وقف هنا لو عايز قيمة أعلى من غير ما تدفع زيادة.','المنتج اللي الناس بتطلبه أكتر من مرة.']
@@ -73,7 +69,6 @@ def generate_content_pack(row):
     if 'Offer or caption issue' in issue:
         captions = ['خد قيمة أعلى من غير تعقيد في الطلب. مميزات واضحة، Checkout سهل، وتوصيل سريع.','العرض ده معمول للي عايز يشتري بذكاء، مش يشتري أي منتج وخلاص.','قارن القيمة، شوف المميزات، واطلب قبل ما العرض يخلص.']
     return hooks, captions, visuals, testing, scaling
-
 
 def score_row(row, avg_roas, level='campaign'):
     score, reasons = 0, []
@@ -127,7 +122,6 @@ def score_row(row, avg_roas, level='campaign'):
         action = 'Active but weak. Review now or pause.'
     return score, status, action, reopen, ' | '.join(reasons[:4])
 
-
 def daily_budget_action(row, avg_roas):
     roas, spend, purchases, cpp, ctr, freq = [safe_num(row.get(x)) for x in ['manual_roas','spend','purchases','cost_per_purchase','ctr','frequency']]
     if spend >= 800 and purchases == 0:
@@ -143,7 +137,6 @@ def daily_budget_action(row, avg_roas):
     if cpp and cpp > 400:
         return 'CUT 20-30%', 'الـ CPA عالي. قلل الصرف وجرب عرض/كابشن أقوى.'
     return 'WATCH', 'راقبها. مفيش قرار عنيف دلوقتي.'
-
 
 def tracking_diagnostics(row):
     clicks, lpv, atc, ic, purchases = [safe_num(row.get(x)) for x in ['clicks','landing_page_view','add_to_cart','initiate_checkout','purchases']]
@@ -165,7 +158,6 @@ def tracking_diagnostics(row):
         score -= 25; leak = 'Traffic with no purchases'; rec = 'الترافيك غير مؤهل أو التراكينج ناقص. راجع event purchase والـ audience intent.'; priority = 'Fix Tracking / Audience'
     return max(0, round(score)), leak, priority, rec
 
-
 def growth_recommendation(row):
     action = str(row.get('today_action',''))
     leak = str(row.get('funnel_leak_stage',''))
@@ -178,7 +170,6 @@ def growth_recommendation(row):
     if 'Checkout' in leak: return 'راجع checkout وطرق الدفع والشحن. المشكلة مش في الإعلان لو الناس وصلت checkout.'
     if status == 'Scale': return 'الأصل قوي. اعمل variations من نفس الزاوية، ومتغيرش كل حاجة مرة واحدة.'
     return 'راقب الأداء، ولو مفيش تحسن خلال 24-48 ساعة اعمل تست Hook + Visual جديد.'
-
 
 def aggregate_level(df, level, overall_roas):
     id_cols = {'campaign':['campaign_name','campaign_status','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_status','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_status','ad_effective_status']}[level]
@@ -194,7 +185,6 @@ def aggregate_level(df, level, overall_roas):
     agg['growth_recommendation_ar'] = agg.apply(growth_recommendation, axis=1)
     return agg.sort_values(['today_action','score'], ascending=[True, False])
 
-
 def show_table(title, help_text, data, cols, name_col=None):
     st.markdown(f'<div class="table-title">{title}</div><div class="help-text">{help_text}</div>', unsafe_allow_html=True)
     existing_cols = [c for c in cols if c in data.columns]
@@ -202,7 +192,6 @@ def show_table(title, help_text, data, cols, name_col=None):
     if name_col and name_col in table_df.columns:
         table_df = table_df.set_index(name_col)
     st.dataframe(table_df, use_container_width=True)
-
 
 def show_growth_center(df):
     if df.empty: return
@@ -219,7 +208,6 @@ def show_growth_center(df):
             name = r.get('campaign_name') or r.get('adset_name') or r.get('ad_name')
             col.markdown(f'<div class="os-card {cls}"><h4>{title}</h4><div><b>{name}</b></div><div>{r.get("growth_recommendation_ar")}</div></div>', unsafe_allow_html=True)
 
-
 def show_alerts(df):
     if df.empty: return
     pause_count = int((df['today_action'] == 'PAUSE TODAY').sum()); scale_count = int((df['today_action'] == 'SCALE 15-20%').sum()); fix_count = int(df['growth_priority'].astype(str).str.contains('Fix', na=False).sum())
@@ -228,14 +216,16 @@ def show_alerts(df):
     b.markdown(f'<div class="os-card alert-good"><h4>Scale Opportunities</h4><div>{scale_count} items can be scaled carefully.</div></div>', unsafe_allow_html=True)
     c.markdown(f'<div class="os-card alert-info"><h4>Tracking / Funnel Fixes</h4><div>{fix_count} items need funnel or tracking work.</div></div>', unsafe_allow_html=True)
 
-
 def show_budget_simulator(row):
     current_spend = safe_num(row.get('spend')); roas = safe_num(row.get('manual_roas'))
     st.markdown('<div class="table-title">Budget Simulator</div><div class="help-text">Estimate impact before changing budget.</div>', unsafe_allow_html=True)
     pct = st.slider('Budget change %', -50, 100, 20, 5)
     new_spend = current_spend * (1 + pct / 100); est_revenue = new_spend * roas
-    a,b,c = st.columns(3)
-    a.metric('Estimated spend', format_money(new_spend)); b.metric('Estimated revenue', format_money(est_revenue)); c.metric('Current ROAS assumption', roas)
+    render_kpi_cards([
+        {'label': 'Estimated Spend', 'value': format_money(new_spend)},
+        {'label': 'Estimated Revenue', 'value': format_money(est_revenue)},
+        {'label': 'Current ROAS Assumption', 'value': roas},
+    ])
 
 st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">Orange Performance OS</span><h1>AI Media Buyer Operating System</h1><p class="hero-sub">Choose a workspace from the sidebar: overview, invoice, recommendations, tracking, ads actions, or sync settings.</p><div class="hero-tov">One platform. Clear actions. Better decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
 
@@ -324,13 +314,14 @@ try:
     estimated_recharge = total_spend / TAX_NET_RATE if total_spend else 0
     estimated_tax_fees = estimated_recharge - total_spend
     overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
-    c1,c2,c3,c4,c5,c6 = st.columns(6)
-    c1.metric('Real Ad Spend', format_money(total_spend))
-    c2.metric('Estimated Recharge', format_money(estimated_recharge))
-    c3.metric('Tax / Fawry Fees', format_money(estimated_tax_fees))
-    c4.metric('Purchase Value', format_money(total_revenue))
-    c5.metric('Purchase ROAS', overall_roas)
-    c6.metric('Website Purchases', int(window_df['purchases'].sum()))
+    render_kpi_cards([
+        {'label': 'Real Ad Spend', 'value': format_money(total_spend)},
+        {'label': 'Estimated Recharge', 'value': format_money(estimated_recharge)},
+        {'label': 'Tax / Fawry Fees', 'value': format_money(estimated_tax_fees)},
+        {'label': 'Purchase Value', 'value': format_money(total_revenue)},
+        {'label': 'Purchase ROAS', 'value': overall_roas},
+        {'label': 'Website Purchases', 'value': int(window_df['purchases'].sum())},
+    ])
     st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
 
     level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
