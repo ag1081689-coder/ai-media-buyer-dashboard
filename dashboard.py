@@ -237,7 +237,9 @@ def show_budget_simulator(row):
     a,b,c = st.columns(3)
     a.metric('Estimated spend', format_money(new_spend)); b.metric('Estimated revenue', format_money(est_revenue)); c.metric('Current ROAS assumption', roas)
 
-st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">Orange Performance OS</span><h1>Turn messy ad numbers into clear daily moves.</h1><p class="hero-sub">One dashboard to decide what to scale, cut, pause, reopen, and refresh across campaigns, ad sets, and ads.</p><div class="hero-tov">From data chaos to media buying clarity.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
+st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">Orange Performance OS</span><h1>AI Media Buyer Operating System</h1><p class="hero-sub">Choose a workspace from the sidebar: overview, invoice, recommendations, tracking, ads actions, or sync settings.</p><div class="hero-tov">One platform. Clear actions. Better decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
+
+page = st.sidebar.radio('AI Media Buyer OS', ['Overview Dashboard','Client Invoice','AI Recommendations','Tracking Diagnostics','Ads Actions','Settings / Sync'])
 
 try:
     ad_accounts = fetch_business_ad_accounts()
@@ -247,20 +249,20 @@ except Exception as e:
 
 if ad_accounts:
     account_labels = [f"{a.get('name')} — {a.get('id')}" for a in ad_accounts]
-    selected_label = st.selectbox('Select Ad Account', account_labels)
+    selected_label = st.sidebar.selectbox('Select Ad Account', account_labels)
     selected_account = ad_accounts[account_labels.index(selected_label)]
     selected_account_id = selected_account.get('id'); selected_account_name = selected_account.get('name')
-    st.markdown(f'<div class="os-card"><h4>Selected Ad Account</h4><div>{selected_account_name} — {selected_account_id}</div></div>', unsafe_allow_html=True)
+    st.sidebar.success(f'Active: {selected_account_name}')
 else:
     selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
-fetch_window_choice = st.selectbox('Fetch window from Meta', ['All saved windows','Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'])
+fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month','All saved windows'])
 fetch_specific_month = None
 if fetch_window_choice == 'Specific Month':
-    fetch_specific_month = st.selectbox('Select Month to Fetch', MONTHS)
+    fetch_specific_month = st.sidebar.selectbox('Select Month to Fetch', MONTHS)
 
-if st.button('Fetch Latest Meta Data'):
+if st.sidebar.button('Sync Meta Data'):
     try:
         selected_window = None
         if fetch_window_choice == 'Today': selected_window = 'TODAY'
@@ -277,30 +279,35 @@ if st.button('Fetch Latest Meta Data'):
             df_live.to_csv('meta_ads_report.csv', index=False)
             st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
-        st.error(f'Error fetching Meta data: {e}')
+        msg = str(e)
+        if 'Application request limit reached' in msg or 'Too many API requests' in msg:
+            st.error('Meta API rate limit reached. Wait a few minutes, then fetch one window only.')
+        else:
+            st.error(f'Error fetching Meta data: {e}')
 
 try:
     try:
         df = pd.read_csv('meta_ads_report.csv')
     except (EmptyDataError, ParserError):
-        st.warning('The saved report is empty or corrupted. Click Fetch Latest Meta Data again for the selected ad account.')
+        st.warning('The saved report is empty or corrupted. Click Sync Meta Data again for the selected ad account.')
         st.stop()
     if df.empty:
-        st.warning('No data saved yet. Click Fetch Latest Meta Data for the selected ad account.')
+        st.warning('No data saved yet. Click Sync Meta Data for the selected ad account.')
         st.stop()
     if selected_account_id and 'account_id' in df.columns:
         df = df[df['account_id'] == selected_account_id]
     if df.empty:
-        st.warning('No saved data for this selected ad account. Click Fetch Latest Meta Data.')
+        st.warning('No saved data for this selected ad account. Click Sync Meta Data.')
         st.stop()
     if 'window' not in df.columns:
         df['window'] = 'TODAY'
-    df['window'] = df['window'].fillna('TODAY').replace({'MTD':'30D','this_month':'30D', 'None':'TODAY'})
+    df['window'] = df['window'].fillna('TODAY').replace({'MTD':'30D','this_month':'30D','None':'TODAY'})
     for col in ['spend','ctr','cpc','cpm','frequency','roas','purchases','cost_per_purchase','purchase_value','aov','add_to_cart','initiate_checkout','purchase_rate','lpv_rate','atc_rate','manual_roas','meta_roas','clicks','impressions','landing_page_view','view_content']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         else:
             df[col] = 0
+
     window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Today')
     report_specific_month = None
     if window_choice == 'Specific Month':
@@ -310,20 +317,33 @@ try:
     window_df = df[df['window'] == selected_window_value].copy()
     if window_df.empty:
         st.warning('No data available for this window. Fetch this window first or try another account.')
-    else:
-        total_spend = window_df['spend'].sum()
-        total_revenue = window_df['purchase_value'].sum()
-        estimated_recharge = total_spend / TAX_NET_RATE if total_spend else 0
-        estimated_tax_fees = estimated_recharge - total_spend
-        overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
-        c1,c2,c3,c4,c5,c6 = st.columns(6)
-        c1.metric('Real Ad Spend', format_money(total_spend))
-        c2.metric('Estimated Recharge', format_money(estimated_recharge))
-        c3.metric('Tax / Fawry Fees', format_money(estimated_tax_fees))
-        c4.metric('Purchase Value', format_money(total_revenue))
-        c5.metric('Purchase ROAS', overall_roas)
-        c6.metric('Website Purchases', int(window_df['purchases'].sum()))
-        st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
+        st.stop()
+
+    total_spend = window_df['spend'].sum()
+    total_revenue = window_df['purchase_value'].sum()
+    estimated_recharge = total_spend / TAX_NET_RATE if total_spend else 0
+    estimated_tax_fees = estimated_recharge - total_spend
+    overall_roas = round(total_revenue / total_spend, 2) if total_spend else 0
+    c1,c2,c3,c4,c5,c6 = st.columns(6)
+    c1.metric('Real Ad Spend', format_money(total_spend))
+    c2.metric('Estimated Recharge', format_money(estimated_recharge))
+    c3.metric('Tax / Fawry Fees', format_money(estimated_tax_fees))
+    c4.metric('Purchase Value', format_money(total_revenue))
+    c5.metric('Purchase ROAS', overall_roas)
+    c6.metric('Website Purchases', int(window_df['purchases'].sum()))
+    st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
+
+    level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
+    level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
+    level_df = aggregate_level(window_df, level, overall_roas)
+    if level_df.empty:
+        st.warning('No grouped data available for this level.')
+        st.stop()
+
+    base_cols = {'campaign':['campaign_name','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_effective_status']}[level]
+    decision_cols = base_cols + ['score','tracking_health_score','growth_priority','growth_recommendation_ar','funnel_leak_stage','tracking_recommendation_ar','status','today_action','today_reason','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency','landing_page_view','add_to_cart','initiate_checkout']
+
+    if page == 'Client Invoice':
         st.markdown('<div class="table-title">Download Results Invoice</div>', unsafe_allow_html=True)
         st.markdown('<div class="help-text">Choose a period and download only the client-facing results.</div>', unsafe_allow_html=True)
         invoice_window_choice = st.selectbox('Invoice time range', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], key='invoice_window_choice')
@@ -350,89 +370,40 @@ try:
                 col_i4, col_i5 = st.columns(2)
                 orders_input = col_i4.number_input('Orders', value=int(invoice_orders), step=1)
                 purchase_value_input = col_i5.number_input('Purchase Value', value=float(invoice_purchase_value), step=100.0)
-            invoice_html = f"""
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Client Invoice</title>
-<style>
-body {{background:#050505;color:#ffffff;font-family:Arial,sans-serif;padding:40px;}}
-.invoice {{max-width:900px;margin:auto;border:1px solid rgba(255,122,0,.45);border-radius:24px;padding:32px;background:#0f0f0f;}}
-h1 {{color:#ff9f1c;margin:0 0 8px;}}
-.meta {{color:#cfcfcf;margin-bottom:24px;line-height:1.7;}}
-.grid {{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}}
-.card {{border:1px solid rgba(255,122,0,.35);border-radius:16px;padding:18px;background:#111111;}}
-.label {{color:#cfcfcf;font-size:14px;margin-bottom:8px;}}
-.value {{color:#ffffff;font-size:30px;font-weight:800;}}
-</style>
-</head>
-<body>
-<div class="invoice">
-<h1>Client Invoice</h1>
-<div class="meta"><b>Client:</b> {client_name}<br><b>Ad Account:</b> {selected_account_name}<br><b>Period:</b> {invoice_window_choice}</div>
-<div class="grid">
-<div class="card"><div class="label">Amount Spent</div><div class="value">{amount_spent_input:,.0f} EGP</div></div>
-<div class="card"><div class="label">Tax</div><div class="value">{tax_input:,.0f} EGP</div></div>
-<div class="card"><div class="label">Spent Without Tax</div><div class="value">{spent_without_tax_input:,.0f} EGP</div></div>
-<div class="card"><div class="label">Orders</div><div class="value">{orders_input:,.0f}</div></div>
-<div class="card"><div class="label">Purchase Value</div><div class="value">{purchase_value_input:,.0f} EGP</div></div>
-</div>
-</div>
-</body>
-</html>
-"""
+            invoice_html = f"""<!doctype html><html><head><meta charset='utf-8'><title>Client Invoice</title><style>body{{background:#050505;color:#ffffff;font-family:Arial,sans-serif;padding:40px;}}.invoice{{max-width:900px;margin:auto;border:1px solid rgba(255,122,0,.45);border-radius:24px;padding:32px;background:#0f0f0f;}}h1{{color:#ff9f1c;margin:0 0 8px;}}.meta{{color:#cfcfcf;margin-bottom:24px;line-height:1.7;}}.grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}}.card{{border:1px solid rgba(255,122,0,.35);border-radius:16px;padding:18px;background:#111111;}}.label{{color:#cfcfcf;font-size:14px;margin-bottom:8px;}}.value{{color:#ffffff;font-size:30px;font-weight:800;}}</style></head><body><div class='invoice'><h1>Client Invoice</h1><div class='meta'><b>Client:</b> {client_name}<br><b>Ad Account:</b> {selected_account_name}<br><b>Period:</b> {invoice_window_choice}</div><div class='grid'><div class='card'><div class='label'>Amount Spent</div><div class='value'>{amount_spent_input:,.0f} EGP</div></div><div class='card'><div class='label'>Tax</div><div class='value'>{tax_input:,.0f} EGP</div></div><div class='card'><div class='label'>Spent Without Tax</div><div class='value'>{spent_without_tax_input:,.0f} EGP</div></div><div class='card'><div class='label'>Orders</div><div class='value'>{orders_input:,.0f}</div></div><div class='card'><div class='label'>Purchase Value</div><div class='value'>{purchase_value_input:,.0f} EGP</div></div></div></div></body></html>"""
             st.download_button('Download Invoice', data=invoice_html, file_name=f'client_invoice_{invoice_window_value}.html', mime='text/html', use_container_width=True)
-        level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
-        level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
-        level_df = aggregate_level(window_df, level, overall_roas)
-        if level_df.empty:
-            st.warning('No grouped data available for this level.')
-            st.stop()
+
+    elif page == 'Overview Dashboard':
         show_growth_center(level_df); show_alerts(level_df)
-        st.markdown('<div class="filter-card">', unsafe_allow_html=True)
         view_choice = st.segmented_control('View', ['Growth Recommendations','Tracking Diagnostics','All','Active Only','Scale','Watch','Test/Fix','Kill/Pause','Reopen','Creative Fixes','Today Actions','Charts'], default='Growth Recommendations')
-        col_a,col_b,col_c,col_d = st.columns(4)
-        min_score = col_a.slider('Min score', 0, 100, 0, 5)
-        min_roas = col_b.number_input('Min ROAS', min_value=0.0, value=0.0, step=0.5)
-        action_filter = col_c.multiselect('Today action', sorted(level_df['today_action'].dropna().unique().tolist()), default=[])
-        search = col_d.text_input('Search')
-        st.markdown('</div>', unsafe_allow_html=True)
-        filtered = level_df[(level_df['score'] >= min_score) & (level_df['manual_roas'] >= min_roas)].copy()
-        name_col = {'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level]
-        active_col = {'campaign':'campaign_effective_status','adset':'adset_effective_status','ad':'ad_effective_status'}[level]
-        if action_filter:
-            filtered = filtered[filtered['today_action'].isin(action_filter)]
-        if search:
-            filtered = filtered[filtered[name_col].astype(str).str.contains(search, case=False, na=False)]
-        if view_choice == 'Active Only': filtered = filtered[filtered[active_col] == 'ACTIVE']
-        elif view_choice in ['Scale','Watch','Test/Fix','Kill/Pause']: filtered = filtered[filtered['status'] == view_choice]
-        elif view_choice == 'Reopen': filtered = filtered[filtered['reopen_signal'] == 'YES']
-        elif view_choice == 'Creative Fixes': filtered = filtered[filtered['creative_issue'] != 'No major creative issue']
-        elif view_choice == 'Today Actions': filtered = filtered[filtered['today_action'] != 'WATCH']
-        elif view_choice == 'Tracking Diagnostics': filtered = filtered.sort_values('tracking_health_score')
-        elif view_choice == 'Growth Recommendations': filtered = filtered[filtered['growth_priority'] != 'Scale/Watch'].copy()
-        base_cols = {'campaign':['campaign_name','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_effective_status']}[level]
-        decision_cols = base_cols + ['score','tracking_health_score','growth_priority','growth_recommendation_ar','funnel_leak_stage','tracking_recommendation_ar','status','today_action','today_reason','next_action','creative_issue','creative_fix','reopen_signal','why','spend','purchase_value','manual_roas','purchases','cost_per_purchase','ctr','frequency','landing_page_view','add_to_cart','initiate_checkout']
+        filtered = level_df.copy()
         if view_choice == 'Charts':
             chart_df = level_df.copy().head(15)
             label = 'campaign_name' if 'campaign_name' in chart_df.columns else chart_df.columns[0]
             chart_df = chart_df.set_index(label)
             st.bar_chart(chart_df[['spend','purchase_value','manual_roas','score','tracking_health_score']])
         else:
-            show_table(f'{window_choice} — {level_choice} {view_choice}', 'الاسم متثبت كـ index عشان يفضل ظاهر وانت بتسكرول أفقياً.', filtered, decision_cols, name_col=name_col)
-        if not filtered.empty:
-            selected_item = st.selectbox('Select item for action card', filtered[name_col].dropna().tolist())
-            selected_row = filtered[filtered[name_col] == selected_item].iloc[0]
-            hooks, captions, visuals, testing_plan, scaling_plan = generate_content_pack(selected_row)
-            st.markdown(f'''<div class="action-card"><h3>{selected_item}</h3><div class="action-grid"><div class="action-box"><div class="action-label">Score</div>{selected_row.get('score')}</div><div class="action-box"><div class="action-label">Tracking Health</div>{selected_row.get('tracking_health_score')}</div><div class="action-box"><div class="action-label">Growth Priority</div>{selected_row.get('growth_priority')}</div><div class="action-box"><div class="action-label">Today action</div>{selected_row.get('today_action')}</div><div class="action-box"><div class="action-label">Funnel Leak</div>{selected_row.get('funnel_leak_stage')}</div><div class="action-box"><div class="action-label">Creative issue</div>{selected_row.get('creative_issue')}</div></div></div>''', unsafe_allow_html=True)
-            st.markdown(f'<div class="os-card"><h4>What to do to improve results</h4><div>{selected_row.get("growth_recommendation_ar")}</div><br><div>{selected_row.get("tracking_recommendation_ar")}</div></div>', unsafe_allow_html=True)
-            action_tabs = st.tabs(['Hooks', 'Captions', 'Visual Directions', 'Testing Roadmap', 'Scaling Roadmap', 'Budget Simulator'])
-            for tab, items in zip(action_tabs[:5], [hooks, captions, visuals, testing_plan, scaling_plan]):
-                with tab:
-                    for item in items: st.write(f'• {item}')
-            with action_tabs[5]: show_budget_simulator(selected_row)
-            export_cols = [c for c in decision_cols if c in filtered.columns]
-            st.download_button('Export filtered action plan CSV', filtered[export_cols].to_csv(index=True), 'action_plan.csv', 'text/csv')
+            show_table(f'{window_choice} — {level_choice} {view_choice}', 'Performance overview and decision table.', filtered, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page == 'AI Recommendations':
+        show_growth_center(level_df); show_alerts(level_df)
+        rec_df = level_df[level_df['growth_priority'] != 'Scale/Watch'].copy()
+        show_table('AI Recommendations', 'Scale, cut, pause, reopen, hook, caption, and visual recommendations.', rec_df if not rec_df.empty else level_df, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page == 'Tracking Diagnostics':
+        tracking_df = level_df.sort_values('tracking_health_score').copy()
+        tracking_cols = base_cols + ['tracking_health_score','funnel_leak_stage','growth_priority','tracking_recommendation_ar','landing_page_view','add_to_cart','initiate_checkout','purchases','spend']
+        show_table('Tracking Diagnostics', 'Funnel leak and tracking health analysis.', tracking_df, tracking_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page == 'Ads Actions':
+        st.markdown('<div class="table-title">Ads Actions</div><div class="help-text">Action plan by campaign, ad set, or ad.</div>', unsafe_allow_html=True)
+        actions_df = level_df[level_df['today_action'] != 'WATCH'].copy()
+        show_table('Today Actions', 'Items that need scale, cut, pause, or creative refresh.', actions_df if not actions_df.empty else level_df, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page == 'Settings / Sync':
+        st.markdown('<div class="table-title">Settings / Sync</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="os-card"><h4>Active Ad Account</h4><div>{selected_account_name} — {selected_account_id}</div></div>', unsafe_allow_html=True)
+        st.info('Use the sidebar to select an ad account, choose a fetch window, and click Sync Meta Data.')
+
 except FileNotFoundError:
-    st.info('Click Fetch Latest Meta Data to generate the report for the selected ad account.')
+    st.info('Click Sync Meta Data to generate the report for the selected ad account.')
