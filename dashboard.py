@@ -87,31 +87,33 @@ def get_creative_diagnosis(row):
     ctr, freq, roas, purchases, cpp = [safe_num(row.get(x)) for x in ['ctr','frequency','manual_roas','purchases','cost_per_purchase']]
     issues, fixes = [], []
     if ctr < 1:
-        issues.append('Hook issue'); fixes.append('Ø§Ø¹ÙÙ 5 ÙÙÙÙØ³ Ø¬Ø¯ÙØ¯Ø©: ÙØ´ÙÙØ© ÙØ¨Ø§Ø´Ø±Ø©Ø ØµØ¯ÙØ© Ø³Ø¹Ø±Ø Ø¥Ø«Ø¨Ø§Øª Ø§Ø¬ØªÙØ§Ø¹ÙØ ÙÙØ§Ø±ÙØ©Ø ÙØ§ÙØªØªØ§Ø­ÙØ© UGC.')
+        issues.append('Hook issue'); fixes.append('Create 5 new hooks: direct problem, price shock, social proof, comparison, and UGC opening.')
     if freq > 3.5 and roas < 4:
-        issues.append('Visual fatigue'); fixes.append('ØºÙØ± Ø§ÙÙÙØ¬ÙØ§Ù: Thumbnail Ø¬Ø¯ÙØ¯Ø Ø£ÙÙ ÙØ±ÙÙ ÙØ®ØªÙÙØ Ø²Ø§ÙÙØ© ØªØµÙÙØ± Ø¬Ø¯ÙØ¯Ø©Ø ÙÙØ´ UGC Ø¬Ø¯ÙØ¯.')
+        issues.append('Visual fatigue'); fixes.append('Refresh the visual: new thumbnail, different first frame, new shooting angle, and new UGC face.')
     if purchases > 0 and cpp > 300:
-        issues.append('Offer or caption issue'); fixes.append('Ø§ÙØªØ¨ ÙØ§Ø¨Ø´Ù Ø¬Ø¯ÙØ¯ ÙÙØ¶Ø­ Ø§ÙÙÙÙØ©Ø Ø§ÙØ¹Ø±Ø¶Ø Ø¶ÙØ§ÙØ§Øª Ø§ÙØ¯ÙØ¹ Ø£Ù Ø§ÙØªÙØµÙÙØ ÙCTA ÙØ§Ø¶Ø­.')
+        issues.append('Offer or caption issue'); fixes.append('Rewrite the caption to clarify value, offer, delivery/payment trust, and a clear CTA.')
     if roas >= 5 and purchases >= 10:
-        issues.append('Winning angle'); fixes.append('Ø§Ø¹ÙÙ 3 ÙØ³Ø® Ø¬Ø¯ÙØ¯Ø© ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ© ÙØ´ØºÙÙÙ ÙÙ ØªØ³Øª Scaling ÙØ­Ø³ÙØ¨.')
+        issues.append('Winning angle'); fixes.append('Create 3 new variations from the same winning angle and test them carefully.')
     if not issues:
-        issues.append('No major creative issue'); fixes.append('Ø±Ø§ÙØ¨ ÙÙØ·. ÙØªØºÙØ±Ø´ Ø§ÙØ¥Ø¹ÙØ§Ù Ø§ÙÙØ³Ø¨Ø§Ù ØºÙØ± ÙÙ Frequency Ø²Ø§Ø¯ Ø£Ù ROAS Ø¨Ø¯Ø£ ÙÙØ²Ù.')
+        issues.append('No major creative issue'); fixes.append('Monitor only. Do not change a winning ad unless frequency rises or ROAS starts dropping.')
     return ', '.join(issues), ' | '.join(fixes)
+
 
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
-    hooks = ['ÙØ³Ù Ø¨ØªÙØ§Ø±ÙØ Ø§Ø¨Ø¯Ø£ Ø¨Ø§ÙØ§Ø®ØªÙØ§Ø± Ø§ÙÙÙ Ø§ÙØ¹ÙÙØ§Ø¡ Ø¨ÙØ±Ø¬Ø¹ÙÙÙ ÙÙ ÙØ±Ø©.','ÙØ¨Ù ÙØ§ ØªØ´ØªØ±ÙØ Ø´ÙÙ ÙÙÙ Ø§ÙØ¹Ø±Ø¶ Ø¯Ù ÙØ§Ø®Ø¯ Ø§ÙØªÙØ§Ù.','Ø§ÙØªØ±ÙÙØ© Ø§ÙØ¨Ø³ÙØ·Ø© Ø§ÙÙÙ ÙØ§ÙØª ÙØ§ÙØµØ© Ø·ÙØ¨Ù.','ÙÙÙ ÙÙØ§ ÙÙ Ø¹Ø§ÙØ² ÙÙÙØ© Ø£Ø¹ÙÙ ÙÙ ØºÙØ± ÙØ§ ØªØ¯ÙØ¹ Ø²ÙØ§Ø¯Ø©.','Ø§ÙÙÙØªØ¬ Ø§ÙÙÙ Ø§ÙÙØ§Ø³ Ø¨ØªØ·ÙØ¨Ù Ø£ÙØªØ± ÙÙ ÙØ±Ø©.']
-    captions = ['Ø§Ø®ØªÙØ§Ø± ÙØ¹ÙÙÙ ÙÙÙØ§Ø³ Ø§ÙÙÙ Ø¹Ø§ÙØ²Ø© ÙÙÙØ© ÙØ§Ø¶Ø­Ø© ÙØªØ¬Ø±Ø¨Ø© Ø´Ø±Ø§Ø¡ Ø³ÙÙØ© ÙØ³Ø±ÙØ¹Ø©. Ø§Ø·ÙØ¨ Ø¯ÙÙÙØªÙ ÙØ¨Ù Ø§ÙØªÙØ§Ø¡ Ø§ÙØ¹Ø±Ø¶.','Ø¹Ø±Ø¶ ÙØ§Ø¶Ø­Ø ÙÙÙØ© ÙÙÙØ©Ø ÙÙØ±Ø§Ø± Ø´Ø±Ø§Ø¡ Ø£Ø³ÙÙ. Ø´ÙÙ Ø§ÙØªÙØ§ØµÙÙ ÙÙÙÙ Ø·ÙØ¨Ù Ø§ÙÙÙØ§Ø±Ø¯Ù.','Ø§ÙØ¹ÙÙØ§Ø¡ Ø¨ÙØ®ØªØ§Ø±ÙÙ ÙØ³Ø¨Ø¨. ÙØ§Ø±Ù Ø§ÙÙÙÙØ©Ø Ø´ÙÙ Ø§ÙÙÙÙØ²Ø§ØªØ ÙØ§Ø·ÙØ¨ Ø¨Ø«ÙØ©.']
-    visuals = ['Ø§ÙØªØªØ§Ø­ÙØ© UGC Ø¨ÙØ´ Ø´Ø®Øµ ÙØ§Ø³Ù Ø§ÙÙÙØªØ¬ ÙÙ Ø£ÙÙ Ø«Ø§ÙÙØªÙÙ.','ÙÙØ·Ø© ÙØ±ÙØ¨Ø© ÙÙÙÙØªØ¬ ÙØ¹ Overlay ÙÙØ³Ø¹Ø± Ø£Ù Ø§ÙÙÙØ²Ø© Ø§ÙØ£Ø³Ø§Ø³ÙØ©.','ÙØ¨Ù/Ø¨Ø¹Ø¯ Ø£Ù ÙØ´ÙÙØ©/Ø­Ù ÙØ¹ Cuts Ø³Ø±ÙØ¹Ø© ÙÙ Ø£ÙÙ 3 Ø«ÙØ§ÙÙ.','ÙÙØ¬ÙØ§Ù Ø¥Ø«Ø¨Ø§Øª Ø§Ø¬ØªÙØ§Ø¹Ù: Reviews Ø£Ù Orders Ø£Ù Reaction ÙÙ Ø¹ÙÙÙ.']
-    testing = ['Ø§Ø®ØªØ¨Ø± 3 ÙÙÙÙØ³ Ø¹ÙÙ ÙÙØ³ Ø§ÙÙÙØ¬ÙØ§Ù Ø§ÙÙØ³Ø¨Ø§Ù Ø¹Ø´Ø§Ù ØªØ¹Ø²Ù ØªØ£Ø«ÙØ± Ø§ÙÙÙÙÙ.','Ø´ØºÙ 2 UGC Ù2 Static ÙÙ ABO Ø¨ÙÙØ²Ø§ÙÙØ© ÙØªØ³Ø§ÙÙØ©.','Ø§ÙÙÙ Ø£Ù Creative Ø£ÙÙ ÙÙ 1% CTR Ø¨Ø¹Ø¯ ØµØ±Ù ÙØ§ÙÙØ ÙØ³ÙØ¨ Ø§ÙÙÙ CPA ÙROAS Ø¨ØªØ§Ø¹Ù Ø«Ø§Ø¨Øª.','ÙØªØºÙØ±Ø´ Ø§ÙØ¬ÙÙÙØ± ÙØ§ÙÙØ±ÙØ§ØªÙÙ ÙÙ ÙÙØ³ Ø§ÙÙÙØª.']
-    scaling = ['ÙÙ ROAS Ø«Ø§Ø¨Øª 48 Ø³Ø§Ø¹Ø©Ø Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© 15-20%.','ÙÙ Ø§ÙÙØ¨ÙØ¹Ø§Øª Ø«Ø§Ø¨ØªØ©Ø Ø§Ø¹ÙÙ Duplicate ÙÙÙ Ad Set Ø§ÙÙØ³Ø¨Ø§Ù Ø¯Ø§Ø®Ù CBO Scaling Campaign.','ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ Ø§ÙØµØ±Ù Ø¨ÙÙØ©Ø Ø§Ø¹ÙÙ 3 Variations ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ©.','ÙÙÙ Ø§ÙØ³ÙÙÙ ÙÙ CPA Ø²Ø§Ø¯ ÙØ¬Ø£Ø© Ø£Ù ROAS ÙØ²Ù ØªØ­Øª Ø§ÙØªØ§Ø±Ø¬Øª ÙÙÙÙÙ ÙØ±Ø§ Ø¨Ø¹Ø¶.']
+    hooks = ['Still comparing? Start with the option customers keep coming back to.','Before you buy, check why this offer is getting attention.','The simple upgrade your order was missing.','Stop here if you want better value without paying more.','The product people keep ordering again.']
+    captions = ['Built for customers who want clear value, simple buying, and fast delivery. Order before the offer ends.','Clear offer, strong value, and an easier buying decision. Check the details and complete your order today.','Customers choose it for a reason. Compare the value, check the features, and order with confidence.']
+    visuals = ['UGC opening with a person holding the product in the first 2 seconds.','Close-up product shot with price or key benefit overlay.','Before/after or problem/solution scene with fast cuts in the first 3 seconds.','Social proof visual using reviews, orders, or customer reaction.']
+    testing = ['Test 3 hooks on the same winning visual to isolate hook impact.','Run 2 UGC creatives and 2 static creatives in ABO with equal budgets.','Stop any creative under 1% CTR after enough spend, and keep the stable CPA/ROAS creative.','Do not change audience and creative at the same time.']
+    scaling = ['If ROAS is stable for 48 hours, increase budget by 15-20%.','If sales are stable, duplicate the winning ad set into a CBO scaling campaign.','Before aggressive scaling, create 3 variations from the same winning angle.','Stop scaling if CPA jumps suddenly or ROAS drops below target for 2 consecutive days.']
     if 'Hook issue' in issue:
-        hooks = ['ØºØ§ÙØ¨ÙØ§ Ø¨ØªØ¯ÙØ¹ Ø²ÙØ§Ø¯Ø© ÙÙ ØºÙØ± ÙØ§ ØªØ§Ø®Ø¯ Ø¨Ø§ÙÙ.','Ø§ÙØºÙØ· Ø§ÙÙÙ Ø£ØºÙØ¨ Ø§ÙÙØ§Ø³ Ø¨ØªØ¹ÙÙÙ ÙØ¨Ù ÙØ§ ØªØ´ØªØ±Ù.','Ø¬Ø±Ø¨ØªÙ Ø¹Ø´Ø§Ù Ø£ÙØª ÙØ§ØªØ­ØªØ§Ø±Ø´.','Ø¯Ù Ø§ÙÙÙ ÙØ®ØªØ§Ø±Ù ÙÙ Ø¨Ø¯ÙØ± Ø¹ÙÙ Ø£Ø¹ÙÙ ÙÙÙØ© ÙÙØ§Ø¨Ù Ø§ÙØ³Ø¹Ø±.','ÙØªØ´ØªØ±ÙØ´ ÙØ¨Ù ÙØ§ ØªØ´ÙÙ Ø§ÙÙÙØ·Ø© Ø¯Ù.']
+        hooks = ['You may be paying more without noticing.','The mistake most people make before buying.','I tested it so you do not have to guess.','This is what I would pick for best value for money.','Do not buy before checking this point.']
     if 'Visual fatigue' in issue:
-        visuals = ['ØºÙØ± Ø£ÙÙ ÙØ±ÙÙ Ø¨Ø§ÙÙØ§ÙÙ: Ø®ÙÙÙØ© Ø¬Ø¯ÙØ¯Ø©Ø Ø­Ø±ÙØ© Ø¥ÙØ¯ Ø¬Ø¯ÙØ¯Ø©Ø ÙØ²Ø§ÙÙØ© ÙÙØªØ¬ ÙØ®ØªÙÙØ©.','Ø§Ø³ØªØ®Ø¯Ù Creator Ø¬Ø¯ÙØ¯ Ø¨ÙÙØ³ Ø§ÙØ¹Ø±Ø¶ ÙÙÙ Ø¨Ø§ÙØªØªØ§Ø­ÙØ© ÙØ®ØªÙÙØ©.','Ø­ÙÙÙ ÙÙ Static ÙÙ UGC Ø£Ù ÙÙ UGC ÙÙ Product Demo ÙØ¸ÙÙ.','Ø¶ÙÙ Ø­Ø±ÙØ© ÙÙ Ø£ÙÙ Ø«Ø§ÙÙØ©: Ø¯Ø®ÙÙ Ø§ÙÙÙØªØ¬ ÙÙ Ø§ÙÙØ§Ø¯Ø±Ø Reveal Ø³Ø±ÙØ¹Ø Ø£Ù ÙÙØ§Ø±ÙØ© ÙØ¨Ø§Ø´Ø±Ø©.']
+        visuals = ['Change the first frame completely: new background, new hand movement, and different product angle.','Use a new creator with the same offer but a different opening.','Switch from static to UGC or from UGC to a clean product demo.','Add motion in the first second: product entry, quick reveal, or direct comparison.']
     if 'Offer or caption issue' in issue:
-        captions = ['Ø®Ø¯ ÙÙÙØ© Ø£Ø¹ÙÙ ÙÙ ØºÙØ± ØªØ¹ÙÙØ¯ ÙÙ Ø§ÙØ·ÙØ¨. ÙÙÙØ²Ø§Øª ÙØ§Ø¶Ø­Ø©Ø Checkout Ø³ÙÙØ ÙØªÙØµÙÙ Ø³Ø±ÙØ¹.','Ø§ÙØ¹Ø±Ø¶ Ø¯Ù ÙØ¹ÙÙÙ ÙÙÙ Ø¹Ø§ÙØ² ÙØ´ØªØ±Ù Ø¨Ø°ÙØ§Ø¡Ø ÙØ´ ÙØ´ØªØ±Ù Ø£Ù ÙÙØªØ¬ ÙØ®ÙØ§Øµ.','ÙØ§Ø±Ù Ø§ÙÙÙÙØ©Ø Ø´ÙÙ Ø§ÙÙÙÙØ²Ø§ØªØ ÙØ§Ø·ÙØ¨ ÙØ¨Ù ÙØ§ Ø§ÙØ¹Ø±Ø¶ ÙØ®ÙØµ.']
+        captions = ['Get stronger value with a simple buying experience. Clear benefits, easy checkout, and fast delivery.','This offer is made for customers who want to buy smart, not just buy anything.','Compare the value, check the features, and order before the offer ends.']
     return hooks, captions, visuals, testing, scaling
+
 
 def score_row(row, avg_roas, level='campaign'):
     score, reasons = 0, []
@@ -168,18 +170,19 @@ def score_row(row, avg_roas, level='campaign'):
 def daily_budget_action(row, avg_roas):
     roas, spend, purchases, cpp, ctr, freq = [safe_num(row.get(x)) for x in ['manual_roas','spend','purchases','cost_per_purchase','ctr','frequency']]
     if spend >= 800 and purchases == 0:
-        return 'PAUSE TODAY', 'Ø§ÙÙÙÙØ§ Ø§ÙÙÙØ§Ø±Ø¯Ù. ØµØ±ÙØª ÙÙ ØºÙØ± ÙØ¨ÙØ¹Ø§Øª.'
+        return 'PAUSE TODAY', 'Pause today. It spent without purchases.'
     if spend >= 500 and roas and roas < max(1.5, avg_roas * 0.35):
-        return 'CUT 30-50%', 'ÙÙÙ Ø§ÙÙÙØ²Ø§ÙÙØ© 30% ÙÙ 50% ÙØ±Ø§Ø¬Ø¹ Ø§ÙÙØ±ÙØ§ØªÙÙ.'
+        return 'CUT 30-50%', 'Cut budget by 30-50% and review the creative.'
     if roas >= avg_roas * 1.2 and purchases >= 5 and freq < 3:
-        return 'SCALE 15-20%', 'Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© 15% ÙÙ 20% ÙÙ Ø§ÙØ£Ø¯Ø§Ø¡ Ø«Ø§Ø¨Øª Ø¢Ø®Ø± Ø§ÙÙÙÙ.'
+        return 'SCALE 15-20%', 'Increase budget by 15-20% if performance stays stable.'
     if ctr < 1 and spend >= 300:
-        return 'CREATIVE FIX', 'Ø§ÙÙØ´ÙÙØ© ØºØ§ÙØ¨ÙØ§ ÙÙ Ø§ÙÙÙÙÙ Ø£Ù Ø£ÙÙ ÙØ±ÙÙ.'
+        return 'CREATIVE FIX', 'The issue is likely the hook or first frame.'
     if freq > 4:
-        return 'REFRESH VISUAL', 'ÙÙÙ Fatigue. ØºÙØ± Ø§ÙÙÙØ¬ÙØ§Ù ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ ØµØ±Ù.'
+        return 'REFRESH VISUAL', 'Possible fatigue. Refresh the visual before increasing spend.'
     if cpp and cpp > 400:
-        return 'CUT 20-30%', 'Ø§ÙÙ CPA Ø¹Ø§ÙÙ. ÙÙÙ Ø§ÙØµØ±Ù ÙØ¬Ø±Ø¨ Ø¹Ø±Ø¶/ÙØ§Ø¨Ø´Ù Ø£ÙÙÙ.'
-    return 'WATCH', 'Ø±Ø§ÙØ¨ÙØ§. ÙÙÙØ´ ÙØ±Ø§Ø± Ø¹ÙÙÙ Ø¯ÙÙÙØªÙ.'
+        return 'CUT 20-30%', 'CPA is high. Reduce spend and test a stronger offer or caption.'
+    return 'WATCH', 'Monitor. No aggressive action needed now.'
+
 
 def tracking_diagnostics(row):
     clicks, lpv, atc, ic, purchases = [safe_num(row.get(x)) for x in ['clicks','landing_page_view','add_to_cart','initiate_checkout','purchases']]
@@ -188,31 +191,33 @@ def tracking_diagnostics(row):
     checkout_rate = (ic / atc * 100) if atc else 0
     purchase_rate = (purchases / ic * 100) if ic else 0
     score = 100
-    leak, rec, priority = 'No major leak', 'Ø§ÙÙØ§ÙÙ Ø´ÙÙÙ ÙØ³ØªÙØ±. Ø±ÙØ² Ø¹ÙÙ Ø§ÙØ³ÙÙÙ Ø£Ù ØªØ­Ø³ÙÙ Ø§ÙÙØ±ÙØ§ØªÙÙ.', 'Scale/Watch'
+    leak, rec, priority = 'No major leak', 'Funnel looks stable. Focus on scaling or improving creatives.', 'Scale/Watch'
     if clicks > 50 and lpv_rate < 55:
-        score -= 35; leak = 'Click â LPV leak'; rec = 'Ø±Ø§Ø¬Ø¹ Ø³Ø±Ø¹Ø© Ø§ÙÙØ§ÙØ¯ÙØ¬ ÙØ§ÙØªØ±Ø§ÙÙÙØ¬. ÙÙ Clicks ÙØªÙØ± ÙØ´ Ø¨ØªÙØµÙ LPV.'; priority = 'Fix Tracking / Landing Speed'
+        score -= 35; leak = 'Click -> LPV leak'; rec = 'Review landing page speed and tracking. Many clicks are not turning into LPV.'; priority = 'Fix Tracking / Landing Speed'
     elif lpv > 50 and atc_rate < 3:
-        score -= 30; leak = 'LPV â ATC leak'; rec = 'Ø§ÙÙØ§Ø³ Ø¨ØªØ¯Ø®Ù Ø§ÙØµÙØ­Ø© Ø¨Ø³ ÙØ´ Ø¨ØªØ¶ÙÙ ÙÙØ³ÙØ©. Ø±Ø§Ø¬Ø¹ Ø§ÙØ¹Ø±Ø¶Ø Ø§ÙØ³Ø¹Ø±Ø Ø§ÙØµÙØ±Ø ÙØ§ÙØ«ÙØ©.'; priority = 'Fix Offer / Product Page'
+        score -= 30; leak = 'LPV -> ATC leak'; rec = 'People visit the page but do not add to cart. Review offer, price, product images, and trust.'; priority = 'Fix Offer / Product Page'
     elif atc > 10 and checkout_rate < 35:
-        score -= 25; leak = 'ATC â Checkout leak'; rec = 'ÙÙ ÙØ´ÙÙØ© ÙÙ Ø§ÙØ³ÙØ©: Ø´Ø­ÙØ Ø³Ø¹Ø± ÙÙØ§Ø¦ÙØ ÙÙØ¯ Ø®ØµÙØ Ø£Ù Ø«ÙØ©.'; priority = 'Fix Cart'
+        score -= 25; leak = 'ATC -> Checkout leak'; rec = 'Cart issue likely: shipping, final price, discount code, or trust.'; priority = 'Fix Cart'
     elif ic > 5 and purchase_rate < 35:
-        score -= 25; leak = 'Checkout â Purchase leak'; rec = 'ÙÙ Ø§Ø­ØªÙØ§Ù ÙÙ Ø§ÙØ¯ÙØ¹ Ø£Ù checkout. Ø±Ø§Ø¬Ø¹ Ø·Ø±Ù Ø§ÙØ¯ÙØ¹Ø CODØ ÙØ§ÙØ±Ø³Ø§Ø¦Ù.'; priority = 'Fix Checkout'
+        score -= 25; leak = 'Checkout -> Purchase leak'; rec = 'Checkout friction likely. Review payment methods, COD, and checkout messages.'; priority = 'Fix Checkout'
     if clicks > 100 and purchases == 0:
-        score -= 25; leak = 'Traffic with no purchases'; rec = 'Ø§ÙØªØ±Ø§ÙÙÙ ØºÙØ± ÙØ¤ÙÙ Ø£Ù Ø§ÙØªØ±Ø§ÙÙÙØ¬ ÙØ§ÙØµ. Ø±Ø§Ø¬Ø¹ event purchase ÙØ§ÙÙ audience intent.'; priority = 'Fix Tracking / Audience'
+        score -= 25; leak = 'Traffic with no purchases'; rec = 'Traffic may be unqualified or purchase tracking may be missing. Review purchase event and audience intent.'; priority = 'Fix Tracking / Audience'
     return max(0, round(score)), leak, priority, rec
+
 
 def growth_recommendation(row):
     action = str(row.get('today_action',''))
     leak = str(row.get('funnel_leak_stage',''))
     status = str(row.get('status',''))
-    if action == 'SCALE 15-20%': return 'Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© ØªØ¯Ø±ÙØ¬Ù 15-20%Ø ÙØ§Ø¹ÙÙ ÙØ³Ø®Ø© ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ© ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ Ø¨ÙÙØ©.'
-    if action.startswith('CUT'): return 'ÙÙÙ Ø§ÙÙÙØ²Ø§ÙÙØ© ÙØ¤ÙØªÙØ§Ø ÙØ´ØºÙ ØªØ³Øª Ø¬Ø¯ÙØ¯ Ø¹ÙÙ Ø§ÙÙÙÙÙ Ø£Ù Ø§ÙØ¹Ø±Ø¶ Ø¨Ø¯Ù ÙØ§ ØªØ²ÙØ¯ ØµØ±Ù Ø¹ÙÙ ÙÙØ³ Ø§ÙÙØ´ÙÙØ©.'
-    if action == 'PAUSE TODAY': return 'Ø§ÙÙÙÙØ§ Ø§ÙÙÙØ§Ø±Ø¯Ù. ÙØªÙØªØ­ÙØ§Ø´ ØªØ§ÙÙ ØºÙØ± Ø¨Ø¹Ø¯ ÙØ§ ØªØºÙØ± Ø§ÙÙØ±ÙØ§ØªÙÙ Ø£Ù Ø§ÙØ¬ÙÙÙØ± Ø£Ù Ø§ÙØ¹Ø±Ø¶.'
-    if 'LPV' in leak: return 'Ø§Ø¨Ø¯Ø£ Ø¨ØªØ­Ø³ÙÙ Ø³Ø±Ø¹Ø© Ø§ÙØµÙØ­Ø© ÙØ§ÙØªØ±Ø§ÙÙÙØ¬ ÙØ¨Ù Ø£Ù ØªØ³Øª ÙØ±ÙØ§ØªÙÙ Ø¬Ø¯ÙØ¯.'
-    if 'ATC' in leak: return 'Ø§Ø´ØªØºÙ Ø¹ÙÙ Ø§ÙØ¹Ø±Ø¶ ÙØµÙØ­Ø© Ø§ÙÙÙØªØ¬. Ø²ÙØ¯ proofØ ÙØ¶Ø­ Ø§ÙØ³Ø¹Ø±Ø ÙØ®ÙÙÙ CTA Ø£ÙÙÙ.'
-    if 'Checkout' in leak: return 'Ø±Ø§Ø¬Ø¹ checkout ÙØ·Ø±Ù Ø§ÙØ¯ÙØ¹ ÙØ§ÙØ´Ø­Ù. Ø§ÙÙØ´ÙÙØ© ÙØ´ ÙÙ Ø§ÙØ¥Ø¹ÙØ§Ù ÙÙ Ø§ÙÙØ§Ø³ ÙØµÙØª checkout.'
-    if status == 'Scale': return 'Ø§ÙØ£ØµÙ ÙÙÙ. Ø§Ø¹ÙÙ variations ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ©Ø ÙÙØªØºÙØ±Ø´ ÙÙ Ø­Ø§Ø¬Ø© ÙØ±Ø© ÙØ§Ø­Ø¯Ø©.'
-    return 'Ø±Ø§ÙØ¨ Ø§ÙØ£Ø¯Ø§Ø¡Ø ÙÙÙ ÙÙÙØ´ ØªØ­Ø³Ù Ø®ÙØ§Ù 24-48 Ø³Ø§Ø¹Ø© Ø§Ø¹ÙÙ ØªØ³Øª Hook + Visual Ø¬Ø¯ÙØ¯.'
+    if action == 'SCALE 15-20%': return 'Increase budget gradually by 15-20%, and create a variation from the same winning angle before scaling harder.'
+    if action.startswith('CUT'): return 'Reduce budget temporarily and launch a new test on the hook or offer instead of spending more on the same issue.'
+    if action == 'PAUSE TODAY': return 'Pause today. Do not relaunch until you change the creative, audience, or offer.'
+    if 'LPV' in leak: return 'Start with landing page speed and tracking before launching new creative tests.'
+    if 'ATC' in leak: return 'Work on the offer and product page. Add proof, clarify price, and strengthen the CTA.'
+    if 'Checkout' in leak: return 'Review checkout, payment methods, and shipping. The ad is not the main issue if users reach checkout.'
+    if status == 'Scale': return 'This asset is strong. Create variations from the same angle and avoid changing everything at once.'
+    return 'Monitor performance. If there is no improvement in 24-48 hours, test a new hook and visual.'
+
 
 def aggregate_level(df, level, overall_roas):
     id_cols = {'campaign':['campaign_name','campaign_status','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_status','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_status','ad_effective_status']}[level]
@@ -238,7 +243,7 @@ def show_table(title, help_text, data, cols, name_col=None):
 
 def show_growth_center(df):
     if df.empty: return
-    st.markdown('<div class="table-title">Growth Command Center</div><div class="help-text">Ø§Ø¨Ø¯Ø£ ÙÙ ÙÙØ§. Ø¯Ù Ø£ÙÙ Ø§ÙØ­Ø§Ø¬Ø§Øª Ø§ÙÙÙ ØªØ¹ÙÙÙØ§ Ø¹Ø´Ø§Ù ØªØ¹ÙÙ Ø§ÙÙØªØ§Ø¦Ø¬.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="table-title">Growth Command Center</div><div class="help-text">Start here. These are the most important actions to improve performance.</div>', unsafe_allow_html=True)
     scale = df[df['today_action'] == 'SCALE 15-20%'].head(1)
     pause = df[df['today_action'] == 'PAUSE TODAY'].head(1)
     fix = df[df['growth_priority'].astype(str).str.contains('Fix', na=False)].head(1)
@@ -283,7 +288,7 @@ except Exception as e:
     st.error(f'Could not load ad accounts: {e}')
 
 if ad_accounts:
-    account_labels = [f"{a.get('name')} â {a.get('id')}" for a in ad_accounts]
+    account_labels = [f"{a.get('name')} - {a.get('id')}" for a in ad_accounts]
     selected_label = st.sidebar.selectbox('Select Ad Account', account_labels)
     selected_account = ad_accounts[account_labels.index(selected_label)]
     selected_account_id = selected_account.get('id'); selected_account_name = selected_account.get('name')
@@ -442,7 +447,7 @@ try:
             chart_df = chart_df.set_index(label)
             st.bar_chart(chart_df[['spend','purchase_value','manual_roas','score','tracking_health_score']])
         else:
-            show_table(f'{window_choice} â {level_choice} {view_choice}', 'Performance overview and decision table.', filtered, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+            show_table(f'{window_choice} - {level_choice} {view_choice}', 'Performance overview and decision table.', filtered, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
 
     elif page == 'AI Recommendations':
         show_growth_center(level_df); show_alerts(level_df)
@@ -461,7 +466,7 @@ try:
 
     elif page == 'Settings / Sync':
         st.markdown('<div class="table-title">Settings / Sync</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="os-card"><h4>Active Ad Account</h4><div>{selected_account_name} â {selected_account_id}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="os-card"><h4>Active Ad Account</h4><div>{selected_account_name} - {selected_account_id}</div></div>', unsafe_allow_html=True)
         st.info('Use the sidebar to select an ad account, choose a fetch window, and click Sync Meta Data.')
 
 except FileNotFoundError:
