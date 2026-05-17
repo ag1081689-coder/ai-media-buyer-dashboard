@@ -7,6 +7,16 @@ def render_kpi_cards(cards):
     if not cards:
         return
 
+    card_style = {
+        'background-color': '#0f0f0f',
+        'border': '1px solid rgba(255,122,0,.35)',
+        'border-radius': '18px',
+        'padding': '18px 20px',
+        'min-height': '112px',
+        'box-shadow': '0 14px 45px rgba(0,0,0,.45)',
+        'margin-bottom': '14px',
+    }
+
     for start in range(0, len(cards), 3):
         row_cards = cards[start:start + 3]
         cols = st.columns(len(row_cards))
@@ -16,9 +26,16 @@ def render_kpi_cards(cards):
             value = str(card.get('value', ''))
 
             with col:
+                with st.container(border=False):
+                    st.markdown(f"**{label}**")
+                    st.markdown(
+                        f"<div style='font-size:30px;font-weight:900;line-height:1.1;color:#ffffff;white-space:normal;'>{value}</div>",
+                        unsafe_allow_html=True,
+                    )
                 st.markdown(
-                    f'''
-                    <div style="
+                    """
+                    <style>
+                    div[data-testid="stVerticalBlock"]:has(> div div[data-testid="stMarkdownContainer"] strong) {
                         background:#0f0f0f;
                         border:1px solid rgba(255,122,0,.35);
                         border-radius:18px;
@@ -26,23 +43,8 @@ def render_kpi_cards(cards):
                         min-height:112px;
                         box-shadow:0 14px 45px rgba(0,0,0,.45);
                         margin-bottom:14px;
-                    ">
-                        <div style="
-                            color:#ffffff;
-                            font-size:15px;
-                            line-height:1.35;
-                            margin-bottom:14px;
-                            white-space:normal;
-                        ">{label}</div>
-
-                        <div style="
-                            color:#ffffff;
-                            font-size:30px;
-                            font-weight:900;
-                            line-height:1.1;
-                            white-space:normal;
-                        ">{value}</div>
-                    </div>
-                    ''',
+                    }
+                    </style>
+                    """,
                     unsafe_allow_html=True,
                 )
