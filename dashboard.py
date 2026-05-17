@@ -87,30 +87,30 @@ def get_creative_diagnosis(row):
     ctr, freq, roas, purchases, cpp = [safe_num(row.get(x)) for x in ['ctr','frequency','manual_roas','purchases','cost_per_purchase']]
     issues, fixes = [], []
     if ctr < 1:
-        issues.append('Hook issue'); fixes.append('Ø§Ø¹ÙÙ 5 ÙÙÙØ³ Ø¬Ø¯ÙØ¯Ø©: ÙØ´ÙÙØ© ÙØ¨Ø§Ø´Ø±Ø©Ø ØµØ¯ÙØ© Ø³Ø¹Ø±Ø Ø¥Ø«Ø¨Ø§Øª Ø§Ø¬ØªÙØ§Ø¹ÙØ ÙÙØ§Ø±ÙØ©Ø ÙØ§ÙØªØªØ§Ø­ÙØ© UGC.')
+        issues.append('Hook issue'); fixes.append('اعمل 5 هوكس جديدة: مشكلة مباشرة، صدمة سعر، إثبات اجتماعي، مقارنة، وافتتاحية UGC.')
     if freq > 3.5 and roas < 4:
-        issues.append('Visual fatigue'); fixes.append('ØºÙØ± Ø§ÙÙÙØ¬ÙØ§Ù: Thumbnail Ø¬Ø¯ÙØ¯Ø Ø£ÙÙ ÙØ±ÙÙ ÙØ®ØªÙÙØ Ø²Ø§ÙÙØ© ØªØµÙÙØ± Ø¬Ø¯ÙØ¯Ø©Ø ÙÙØ´ UGC Ø¬Ø¯ÙØ¯.')
+        issues.append('Visual fatigue'); fixes.append('غير الفيجوال: Thumbnail جديد، أول فريم مختلف، زاوية تصوير جديدة، ووش UGC جديد.')
     if purchases > 0 and cpp > 300:
-        issues.append('Offer or caption issue'); fixes.append('Ø§ÙØªØ¨ ÙØ§Ø¨Ø´Ù Ø¬Ø¯ÙØ¯ ÙÙØ¶Ø­ Ø§ÙÙÙÙØ©Ø Ø§ÙØ¹Ø±Ø¶Ø Ø¶ÙØ§ÙØ§Øª Ø§ÙØ¯ÙØ¹ Ø£Ù Ø§ÙØªÙØµÙÙØ ÙCTA ÙØ§Ø¶Ø­.')
+        issues.append('Offer or caption issue'); fixes.append('اكتب كابشن جديد يوضح القيمة، العرض، ضمانات الدفع أو التوصيل، و CTA واضح.')
     if roas >= 5 and purchases >= 10:
-        issues.append('Winning angle'); fixes.append('Ø§Ø¹ÙÙ 3 ÙØ³Ø® Ø¬Ø¯ÙØ¯Ø© ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ© ÙØ´ØºÙÙÙ ÙÙ ØªØ³Øª Scaling ÙØ­Ø³ÙØ¨.')
+        issues.append('Winning angle'); fixes.append('اعمل 3 نسخ جديدة من نفس الزاوية الكسبانة وشغلهم في تست Scaling محسوب.')
     if not issues:
-        issues.append('No major creative issue'); fixes.append('Ø±Ø§ÙØ¨ ÙÙØ·. ÙØªØºÙØ±Ø´ Ø§ÙØ¥Ø¹ÙØ§Ù Ø§ÙÙØ³Ø¨Ø§Ù ØºÙØ± ÙÙ Frequency Ø²Ø§Ø¯ Ø£Ù ROAS Ø¨Ø¯Ø£ ÙÙØ²Ù.')
+        issues.append('No major creative issue'); fixes.append('راقب فقط. متغيرش الإعلان الكسبان غير لو Frequency زاد أو ROAS بدأ ينزل.')
     return ', '.join(issues), ' | '.join(fixes)
 
 def generate_content_pack(row):
     issue = str(row.get('creative_issue', ''))
-    hooks = ['ÙØ³Ù Ø¨ØªÙØ§Ø±ÙØ Ø§Ø¨Ø¯Ø£ Ø¨Ø§ÙØ§Ø®ØªÙØ§Ø± Ø§ÙÙÙ Ø§ÙØ¹ÙÙØ§Ø¡ Ø¨ÙØ±Ø¬Ø¹ÙÙÙ ÙÙ ÙØ±Ø©.','ÙØ¨Ù ÙØ§ ØªØ´ØªØ±ÙØ Ø´ÙÙ ÙÙÙ Ø§ÙØ¹Ø±Ø¶ Ø¯Ù ÙØ§Ø®Ø¯ Ø§ÙØªÙØ§Ù.','Ø§ÙØªØ±ÙÙØ© Ø§ÙØ¨Ø³ÙØ·Ø© Ø§ÙÙÙ ÙØ§ÙØª ÙØ§ÙØµØ© Ø·ÙØ¨Ù.','ÙÙÙ ÙÙØ§ ÙÙ Ø¹Ø§ÙØ² ÙÙÙØ© Ø£Ø¹ÙÙ ÙÙ ØºÙØ± ÙØ§ ØªØ¯ÙØ¹ Ø²ÙØ§Ø¯Ø©.','Ø§ÙÙÙØªØ¬ Ø§ÙÙÙ Ø§ÙÙØ§Ø³ Ø¨ØªØ·ÙØ¨Ù Ø£ÙØªØ± ÙÙ ÙØ±Ø©.']
-    captions = ['Ø§Ø®ØªÙØ§Ø± ÙØ¹ÙÙÙ ÙÙÙØ§Ø³ Ø§ÙÙÙ Ø¹Ø§ÙØ²Ø© ÙÙÙØ© ÙØ§Ø¶Ø­Ø© ÙØªØ¬Ø±Ø¨Ø© Ø´Ø±Ø§Ø¡ Ø³ÙÙØ© ÙØ³Ø±ÙØ¹Ø©. Ø§Ø·ÙØ¨ Ø¯ÙÙÙØªÙ ÙØ¨Ù Ø§ÙØªÙØ§Ø¡ Ø§ÙØ¹Ø±Ø¶.','Ø¹Ø±Ø¶ ÙØ§Ø¶Ø­Ø ÙÙÙØ© ÙÙÙØ©Ø ÙÙØ±Ø§Ø± Ø´Ø±Ø§Ø¡ Ø£Ø³ÙÙ. Ø´ÙÙ Ø§ÙØªÙØ§ØµÙÙ ÙÙÙÙ Ø·ÙØ¨Ù Ø§ÙÙÙØ§Ø±Ø¯Ù.','Ø§ÙØ¹ÙÙØ§Ø¡ Ø¨ÙØ®ØªØ§Ø±ÙÙ ÙØ³Ø¨Ø¨. ÙØ§Ø±Ù Ø§ÙÙÙÙØ©Ø Ø´ÙÙ Ø§ÙÙÙÙØ²Ø§ØªØ ÙØ§Ø·ÙØ¨ Ø¨Ø«ÙØ©.']
-    visuals = ['Ø§ÙØªØªØ§Ø­ÙØ© UGC Ø¨ÙØ´ Ø´Ø®Øµ ÙØ§Ø³Ù Ø§ÙÙÙØªØ¬ ÙÙ Ø£ÙÙ Ø«Ø§ÙÙØªÙÙ.','ÙÙØ·Ø© ÙØ±ÙØ¨Ø© ÙÙÙÙØªØ¬ ÙØ¹ Overlay ÙÙØ³Ø¹Ø± Ø£Ù Ø§ÙÙÙØ²Ø© Ø§ÙØ£Ø³Ø§Ø³ÙØ©.','ÙØ¨Ù/Ø¨Ø¹Ø¯ Ø£Ù ÙØ´ÙÙØ©/Ø­Ù ÙØ¹ Cuts Ø³Ø±ÙØ¹Ø© ÙÙ Ø£ÙÙ 3 Ø«ÙØ§ÙÙ.','ÙÙØ¬ÙØ§Ù Ø¥Ø«Ø¨Ø§Øª Ø§Ø¬ØªÙØ§Ø¹Ù: Reviews Ø£Ù Orders Ø£Ù Reaction ÙÙ Ø¹ÙÙÙ.']
-    testing = ['Ø§Ø®ØªØ¨Ø± 3 ÙÙÙØ³ Ø¹ÙÙ ÙÙØ³ Ø§ÙÙÙØ¬ÙØ§Ù Ø§ÙÙØ³Ø¨Ø§Ù Ø¹Ø´Ø§Ù ØªØ¹Ø²Ù ØªØ£Ø«ÙØ± Ø§ÙÙÙÙ.','Ø´ØºÙ 2 UGC Ù2 Static ÙÙ ABO Ø¨ÙÙØ²Ø§ÙÙØ© ÙØªØ³Ø§ÙÙØ©.','Ø§ÙÙÙ Ø£Ù Creative Ø£ÙÙ ÙÙ 1% CTR Ø¨Ø¹Ø¯ ØµØ±Ù ÙØ§ÙÙØ ÙØ³ÙØ¨ Ø§ÙÙÙ CPA ÙROAS Ø¨ØªØ§Ø¹Ù Ø«Ø§Ø¨Øª.','ÙØªØºÙØ±Ø´ Ø§ÙØ¬ÙÙÙØ± ÙØ§ÙÙØ±ÙØ§ØªÙÙ ÙÙ ÙÙØ³ Ø§ÙÙÙØª.']
-    scaling = ['ÙÙ ROAS Ø«Ø§Ø¨Øª 48 Ø³Ø§Ø¹Ø©Ø Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© 15-20%.','ÙÙ Ø§ÙÙØ¨ÙØ¹Ø§Øª Ø«Ø§Ø¨ØªØ©Ø Ø§Ø¹ÙÙ Duplicate ÙÙÙ Ad Set Ø§ÙÙØ³Ø¨Ø§Ù Ø¯Ø§Ø®Ù CBO Scaling Campaign.','ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ Ø§ÙØµØ±Ù Ø¨ÙÙØ©Ø Ø§Ø¹ÙÙ 3 Variations ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ©.','ÙÙÙ Ø§ÙØ³ÙÙÙ ÙÙ CPA Ø²Ø§Ø¯ ÙØ¬Ø£Ø© Ø£Ù ROAS ÙØ²Ù ØªØ­Øª Ø§ÙØªØ§Ø±Ø¬Øª ÙÙÙÙÙ ÙØ±Ø§ Ø¨Ø¹Ø¶.']
+    hooks = ['لسه بتقارن؟ ابدأ بالاختيار اللي العملاء بيرجعوله كل مرة.','قبل ما تشتري، شوف ليه العرض ده واخد اهتمام.','الترقية البسيطة اللي كانت ناقصة طلبك.','وقف هنا لو عايز قيمة أعلى من غير ما تدفع زيادة.','المنتج اللي الناس بتطلبه أكتر من مرة.']
+    captions = ['اختيار معمول للناس اللي عايزة قيمة واضحة وتجربة شراء سهلة وسريعة. اطلب دلوقتي قبل انتهاء العرض.','عرض واضح، قيمة قوية، وقرار شراء أسهل. شوف التفاصيل وكمل طلبك النهارده.','العملاء بيختاروه لسبب. قارن القيمة، شوف المميزات، واطلب بثقة.']
+    visuals = ['افتتاحية UGC بوش شخص ماسك المنتج في أول ثانيتين.','لقطة قريبة للمنتج مع Overlay للسعر أو الميزة الأساسية.','قبل/بعد أو مشكلة/حل مع Cuts سريعة في أول 3 ثواني.','فيجوال إثبات اجتماعي: Reviews أو Orders أو Reaction من عميل.']
+    testing = ['اختبر 3 هوكس على نفس الفيجوال الكسبان عشان تعزل تأثير الهوك.','شغل 2 UGC و 2 Static في ABO بميزانية متساوية.','اقفل أي Creative أقل من 1% CTR بعد صرف كافي، وسيب اللي CPA و ROAS بتاعه ثابت.','متغيرش الجمهور والكرياتيف في نفس الوقت.']
+    scaling = ['لو ROAS ثابت 48 ساعة، زود الميزانية 15-20%.','لو المبيعات ثابتة، اعمل Duplicate للـ Ad Set الكسبان داخل CBO Scaling Campaign.','قبل ما تزود الصرف بقوة، اعمل 3 Variations من نفس الزاوية الكسبانة.','وقف السكيل لو CPA زاد فجأة أو ROAS نزل تحت التارجت يومين ورا بعض.']
     if 'Hook issue' in issue:
-        hooks = ['ØºØ§ÙØ¨Ø§ Ø¨ØªØ¯ÙØ¹ Ø²ÙØ§Ø¯Ø© ÙÙ ØºÙØ± ÙØ§ ØªØ§Ø®Ø¯ Ø¨Ø§ÙÙ.','Ø§ÙØºÙØ· Ø§ÙÙÙ Ø£ØºÙØ¨ Ø§ÙÙØ§Ø³ Ø¨ØªØ¹ÙÙÙ ÙØ¨Ù ÙØ§ ØªØ´ØªØ±Ù.','Ø¬Ø±Ø¨ØªÙ Ø¹Ø´Ø§Ù Ø£ÙØª ÙØ§ØªØ­ØªØ§Ø±Ø´.','Ø¯Ù Ø§ÙÙÙ ÙØ®ØªØ§Ø±Ù ÙÙ Ø¨Ø¯ÙØ± Ø¹ÙÙ Ø£Ø¹ÙÙ ÙÙÙØ© ÙÙØ§Ø¨Ù Ø§ÙØ³Ø¹Ø±.','ÙØªØ´ØªØ±ÙØ´ ÙØ¨Ù ÙØ§ ØªØ´ÙÙ Ø§ÙÙÙØ·Ø© Ø¯Ù.']
+        hooks = ['غالبا بتدفع زيادة من غير ما تاخد بالك.','الغلط اللي أغلب الناس بتعمله قبل ما تشتري.','جربته عشان أنت متحتارش.','ده اللي هختاره لو بدور على أعلى قيمة مقابل السعر.','متشتريش قبل ما تشوف النقطة دي.']
     if 'Visual fatigue' in issue:
-        visuals = ['ØºÙØ± Ø£ÙÙ ÙØ±ÙÙ Ø¨Ø§ÙÙØ§ÙÙ: Ø®ÙÙÙØ© Ø¬Ø¯ÙØ¯Ø©Ø Ø­Ø±ÙØ© Ø¥ÙØ¯ Ø¬Ø¯ÙØ¯Ø©Ø ÙØ²Ø§ÙÙØ© ÙÙØªØ¬ ÙØ®ØªÙÙØ©.','Ø§Ø³ØªØ®Ø¯Ù Creator Ø¬Ø¯ÙØ¯ Ø¨ÙÙØ³ Ø§ÙØ¹Ø±Ø¶ ÙÙÙ Ø¨Ø§ÙØªØªØ§Ø­ÙØ© ÙØ®ØªÙÙØ©.','Ø­ÙÙ ÙÙ Static ÙÙ UGC Ø£Ù ÙÙ UGC ÙÙ Product Demo ÙØ¸ÙÙ.','Ø¶ÙÙ Ø­Ø±ÙØ© ÙÙ Ø£ÙÙ Ø«Ø§ÙÙØ©: Ø¯Ø®ÙÙ Ø§ÙÙÙØªØ¬ ÙÙ Ø§ÙÙØ§Ø¯Ø±Ø Reveal Ø³Ø±ÙØ¹Ø Ø£Ù ÙÙØ§Ø±ÙØ© ÙØ¨Ø§Ø´Ø±Ø©.']
+        visuals = ['غير أول فريم بالكامل: خلفية جديدة، حركة إيد جديدة، وزاوية منتج مختلفة.','استخدم Creator جديد بنفس العرض لكن بافتتاحية مختلفة.','حول من Static لـ UGC أو من UGC لـ Product Demo نظيف.','ضيف حركة في أول ثانية: دخول المنتج في الكادر، Reveal سريع، أو مقارنة مباشرة.']
     if 'Offer or caption issue' in issue:
-        captions = ['Ø®Ø¯ ÙÙÙØ© Ø£Ø¹ÙÙ ÙÙ ØºÙØ± ØªØ¹ÙÙØ¯ ÙÙ Ø§ÙØ·ÙØ¨. ÙÙÙØ²Ø§Øª ÙØ§Ø¶Ø­Ø©Ø Checkout Ø³ÙÙØ ÙØªÙØµÙÙ Ø³Ø±ÙØ¹.','Ø§ÙØ¹Ø±Ø¶ Ø¯Ù ÙØ¹ÙÙÙ ÙÙÙ Ø¹Ø§ÙØ² ÙØ´ØªØ±Ù Ø¨Ø°ÙØ§Ø¡Ø ÙØ´ ÙØ´ØªØ±Ù Ø£Ù ÙÙØªØ¬ ÙØ®ÙØ§Øµ.','ÙØ§Ø±Ù Ø§ÙÙÙÙØ©Ø Ø´ÙÙ Ø§ÙÙÙÙØ²Ø§ØªØ ÙØ§Ø·ÙØ¨ ÙØ¨Ù ÙØ§ Ø§ÙØ¹Ø±Ø¶ ÙØ®ÙØµ.']
+        captions = ['خد قيمة أعلى من غير تعقيد في الطلب. مميزات واضحة، Checkout سهل، وتوصيل سريع.','العرض ده معمول للي عايز يشتري بذكاء، مش يشتري أي منتج وخلاص.','قارن القيمة، شوف المميزات، واطلب قبل ما العرض يخلص.']
     return hooks, captions, visuals, testing, scaling
 
 def score_row(row, avg_roas, level='campaign'):
@@ -168,18 +168,18 @@ def score_row(row, avg_roas, level='campaign'):
 def daily_budget_action(row, avg_roas):
     roas, spend, purchases, cpp, ctr, freq = [safe_num(row.get(x)) for x in ['manual_roas','spend','purchases','cost_per_purchase','ctr','frequency']]
     if spend >= 800 and purchases == 0:
-        return 'PAUSE TODAY', 'Ø§ÙÙÙÙØ§ Ø§ÙÙÙØ§Ø±Ø¯Ù. ØµØ±ÙØª ÙÙ ØºÙØ± ÙØ¨ÙØ¹Ø§Øª.'
+        return 'PAUSE TODAY', 'اقفلها النهارده. صرفت من غير مبيعات.'
     if spend >= 500 and roas and roas < max(1.5, avg_roas * 0.35):
-        return 'CUT 30-50%', 'ÙÙÙ Ø§ÙÙÙØ²Ø§ÙÙØ© 30% ÙÙ 50% ÙØ±Ø§Ø¬Ø¹ Ø§ÙÙØ±ÙØ§ØªÙÙ.'
+        return 'CUT 30-50%', 'قلل الميزانية 30% لـ 50% وراجع الكرياتيف.'
     if roas >= avg_roas * 1.2 and purchases >= 5 and freq < 3:
-        return 'SCALE 15-20%', 'Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© 15% ÙÙ 20% ÙÙ Ø§ÙØ£Ø¯Ø§Ø¡ Ø«Ø§Ø¨Øª Ø¢Ø®Ø± Ø§ÙÙÙÙ.'
+        return 'SCALE 15-20%', 'زود الميزانية 15% لـ 20% لو الأداء ثابت آخر اليوم.'
     if ctr < 1 and spend >= 300:
-        return 'CREATIVE FIX', 'Ø§ÙÙØ´ÙÙØ© ØºØ§ÙØ¨Ø§ ÙÙ Ø§ÙÙÙÙ Ø£Ù Ø£ÙÙ ÙØ±ÙÙ.'
+        return 'CREATIVE FIX', 'المشكلة غالبا في الهوك أو أول فريم.'
     if freq > 4:
-        return 'REFRESH VISUAL', 'ÙÙÙ Fatigue. ØºÙØ± Ø§ÙÙÙØ¬ÙØ§Ù ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ ØµØ±Ù.'
+        return 'REFRESH VISUAL', 'فيه Fatigue. غير الفيجوال قبل ما تزود صرف.'
     if cpp and cpp > 400:
-        return 'CUT 20-30%', 'Ø§ÙÙ CPA Ø¹Ø§ÙÙ. ÙÙÙ Ø§ÙØµØ±Ù ÙØ¬Ø±Ø¨ Ø¹Ø±Ø¶ Ø£Ù ÙØ§Ø¨Ø´Ù Ø£ÙÙÙ.'
-    return 'WATCH', 'Ø±Ø§ÙØ¨ÙØ§. ÙÙÙØ´ ÙØ±Ø§Ø± Ø¹ÙÙÙ Ø¯ÙÙÙØªÙ.'
+        return 'CUT 20-30%', 'الـ CPA عالي. قلل الصرف وجرب عرض أو كابشن أقوى.'
+    return 'WATCH', 'راقبها. مفيش قرار عنيف دلوقتي.'
 
 def tracking_diagnostics(row):
     clicks, lpv, atc, ic, purchases = [safe_num(row.get(x)) for x in ['clicks','landing_page_view','add_to_cart','initiate_checkout','purchases']]
@@ -188,31 +188,31 @@ def tracking_diagnostics(row):
     checkout_rate = (ic / atc * 100) if atc else 0
     purchase_rate = (purchases / ic * 100) if ic else 0
     score = 100
-    leak, rec, priority = 'No major leak', 'Ø§ÙÙØ§ÙÙ Ø´ÙÙÙ ÙØ³ØªÙØ±. Ø±ÙØ² Ø¹ÙÙ Ø§ÙØ³ÙÙÙ Ø£Ù ØªØ­Ø³ÙÙ Ø§ÙÙØ±ÙØ§ØªÙÙ.', 'Scale/Watch'
+    leak, rec, priority = 'No major leak', 'الفانل شكله مستقر. ركز على السكيل أو تحسين الكرياتيف.', 'Scale/Watch'
     if clicks > 50 and lpv_rate < 55:
-        score -= 35; leak = 'Click -> LPV leak'; rec = 'Ø±Ø§Ø¬Ø¹ Ø³Ø±Ø¹Ø© Ø§ÙÙØ§ÙØ¯ÙØ¬ ÙØ§ÙØªØ±Ø§ÙÙÙØ¬. ÙÙ Clicks ÙØªÙØ± ÙØ´ Ø¨ØªÙØµÙ LPV.'; priority = 'Fix Tracking / Landing Speed'
+        score -= 35; leak = 'Click -> LPV leak'; rec = 'راجع سرعة اللاندنج والتراكينج. في Clicks كتير مش بتوصل LPV.'; priority = 'Fix Tracking / Landing Speed'
     elif lpv > 50 and atc_rate < 3:
-        score -= 30; leak = 'LPV -> ATC leak'; rec = 'Ø§ÙÙØ§Ø³ Ø¨ØªØ¯Ø®Ù Ø§ÙØµÙØ­Ø© Ø¨Ø³ ÙØ´ Ø¨ØªØ¶ÙÙ ÙÙØ³ÙØ©. Ø±Ø§Ø¬Ø¹ Ø§ÙØ¹Ø±Ø¶Ø Ø§ÙØ³Ø¹Ø±Ø Ø§ÙØµÙØ±Ø ÙØ§ÙØ«ÙØ©.'; priority = 'Fix Offer / Product Page'
+        score -= 30; leak = 'LPV -> ATC leak'; rec = 'الناس بتدخل الصفحة بس مش بتضيف للسلة. راجع العرض، السعر، الصور، والثقة.'; priority = 'Fix Offer / Product Page'
     elif atc > 10 and checkout_rate < 35:
-        score -= 25; leak = 'ATC -> Checkout leak'; rec = 'ÙÙ ÙØ´ÙÙØ© ÙÙ Ø§ÙØ³ÙØ©: Ø´Ø­ÙØ Ø³Ø¹Ø± ÙÙØ§Ø¦ÙØ ÙÙØ¯ Ø®ØµÙØ Ø£Ù Ø«ÙØ©.'; priority = 'Fix Cart'
+        score -= 25; leak = 'ATC -> Checkout leak'; rec = 'في مشكلة في السلة: شحن، سعر نهائي، كود خصم، أو ثقة.'; priority = 'Fix Cart'
     elif ic > 5 and purchase_rate < 35:
-        score -= 25; leak = 'Checkout -> Purchase leak'; rec = 'ÙÙ Ø§Ø­ØªÙØ§Ù ÙÙ Ø§ÙØ¯ÙØ¹ Ø£Ù checkout. Ø±Ø§Ø¬Ø¹ Ø·Ø±Ù Ø§ÙØ¯ÙØ¹Ø CODØ ÙØ§ÙØ±Ø³Ø§Ø¦Ù.'; priority = 'Fix Checkout'
+        score -= 25; leak = 'Checkout -> Purchase leak'; rec = 'في احتكاك في الدفع أو Checkout. راجع طرق الدفع، COD، والرسائل.'; priority = 'Fix Checkout'
     if clicks > 100 and purchases == 0:
-        score -= 25; leak = 'Traffic with no purchases'; rec = 'Ø§ÙØªØ±Ø§ÙÙÙ ØºÙØ± ÙØ¤ÙÙ Ø£Ù Ø§ÙØªØ±Ø§ÙÙÙØ¬ ÙØ§ÙØµ. Ø±Ø§Ø¬Ø¹ event purchase ÙØ§ÙÙ audience intent.'; priority = 'Fix Tracking / Audience'
+        score -= 25; leak = 'Traffic with no purchases'; rec = 'الترافيك غير مؤهل أو التراكينج ناقص. راجع event purchase والـ audience intent.'; priority = 'Fix Tracking / Audience'
     return max(0, round(score)), leak, priority, rec
 
 def growth_recommendation(row):
     action = str(row.get('today_action',''))
     leak = str(row.get('funnel_leak_stage',''))
     status = str(row.get('status',''))
-    if action == 'SCALE 15-20%': return 'Ø²ÙØ¯ Ø§ÙÙÙØ²Ø§ÙÙØ© ØªØ¯Ø±ÙØ¬Ù 15-20%Ø ÙØ§Ø¹ÙÙ ÙØ³Ø®Ø© ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ© Ø§ÙÙØ³Ø¨Ø§ÙØ© ÙØ¨Ù ÙØ§ ØªØ²ÙØ¯ Ø¨ÙÙØ©.'
-    if action.startswith('CUT'): return 'ÙÙÙ Ø§ÙÙÙØ²Ø§ÙÙØ© ÙØ¤ÙØªØ§Ø ÙØ´ØºÙ ØªØ³Øª Ø¬Ø¯ÙØ¯ Ø¹ÙÙ Ø§ÙÙÙÙ Ø£Ù Ø§ÙØ¹Ø±Ø¶ Ø¨Ø¯Ù ÙØ§ ØªØ²ÙØ¯ ØµØ±Ù Ø¹ÙÙ ÙÙØ³ Ø§ÙÙØ´ÙÙØ©.'
-    if action == 'PAUSE TODAY': return 'Ø§ÙÙÙÙØ§ Ø§ÙÙÙØ§Ø±Ø¯Ù. ÙØªÙØªØ­ÙØ§Ø´ ØªØ§ÙÙ ØºÙØ± Ø¨Ø¹Ø¯ ÙØ§ ØªØºÙØ± Ø§ÙÙØ±ÙØ§ØªÙÙ Ø£Ù Ø§ÙØ¬ÙÙÙØ± Ø£Ù Ø§ÙØ¹Ø±Ø¶.'
-    if 'LPV' in leak: return 'Ø§Ø¨Ø¯Ø£ Ø¨ØªØ­Ø³ÙÙ Ø³Ø±Ø¹Ø© Ø§ÙØµÙØ­Ø© ÙØ§ÙØªØ±Ø§ÙÙÙØ¬ ÙØ¨Ù Ø£Ù ØªØ³Øª ÙØ±ÙØ§ØªÙÙ Ø¬Ø¯ÙØ¯.'
-    if 'ATC' in leak: return 'Ø§Ø´ØªØºÙ Ø¹ÙÙ Ø§ÙØ¹Ø±Ø¶ ÙØµÙØ­Ø© Ø§ÙÙÙØªØ¬. Ø²ÙØ¯ proofØ ÙØ¶Ø­ Ø§ÙØ³Ø¹Ø±Ø ÙØ®ÙÙ CTA Ø£ÙÙÙ.'
-    if 'Checkout' in leak: return 'Ø±Ø§Ø¬Ø¹ checkout ÙØ·Ø±Ù Ø§ÙØ¯ÙØ¹ ÙØ§ÙØ´Ø­Ù. Ø§ÙÙØ´ÙÙØ© ÙØ´ ÙÙ Ø§ÙØ¥Ø¹ÙØ§Ù ÙÙ Ø§ÙÙØ§Ø³ ÙØµÙØª checkout.'
-    if status == 'Scale': return 'Ø§ÙØ£ØµÙ ÙÙÙ. Ø§Ø¹ÙÙ variations ÙÙ ÙÙØ³ Ø§ÙØ²Ø§ÙÙØ©Ø ÙÙØªØºÙØ±Ø´ ÙÙ Ø­Ø§Ø¬Ø© ÙØ±Ø© ÙØ§Ø­Ø¯Ø©.'
-    return 'Ø±Ø§ÙØ¨ Ø§ÙØ£Ø¯Ø§Ø¡Ø ÙÙÙ ÙÙÙØ´ ØªØ­Ø³Ù Ø®ÙØ§Ù 24-48 Ø³Ø§Ø¹Ø© Ø§Ø¹ÙÙ ØªØ³Øª Hook + Visual Ø¬Ø¯ÙØ¯.'
+    if action == 'SCALE 15-20%': return 'زود الميزانية تدريجي 15-20%، واعمل نسخة من نفس الزاوية الكسبانة قبل ما تزود بقوة.'
+    if action.startswith('CUT'): return 'قلل الميزانية مؤقتا، وشغل تست جديد على الهوك أو العرض بدل ما تزود صرف على نفس المشكلة.'
+    if action == 'PAUSE TODAY': return 'اقفلها النهارده. متفتحهاش تاني غير بعد ما تغير الكرياتيف أو الجمهور أو العرض.'
+    if 'LPV' in leak: return 'ابدأ بتحسين سرعة الصفحة والتراكينج قبل أي تست كرياتيف جديد.'
+    if 'ATC' in leak: return 'اشتغل على العرض وصفحة المنتج. زود proof، وضح السعر، وخلي CTA أقوى.'
+    if 'Checkout' in leak: return 'راجع Checkout وطرق الدفع والشحن. المشكلة مش في الإعلان لو الناس وصلت Checkout.'
+    if status == 'Scale': return 'الأصل قوي. اعمل Variations من نفس الزاوية، ومتغيرش كل حاجة مرة واحدة.'
+    return 'راقب الأداء، ولو مفيش تحسن خلال 24-48 ساعة اعمل تست Hook + Visual جديد.'
 
 def aggregate_level(df, level, overall_roas):
     id_cols = {'campaign':['campaign_name','campaign_status','campaign_effective_status'],'adset':['campaign_name','adset_name','adset_status','adset_effective_status'],'ad':['campaign_name','adset_name','ad_name','ad_status','ad_effective_status']}[level]
@@ -238,7 +238,7 @@ def show_table(title, help_text, data, cols, name_col=None):
 
 def show_growth_center(df):
     if df.empty: return
-    st.markdown('<div class="table-title">Growth Command Center</div><div class="help-text">Ø§Ø¨Ø¯Ø£ ÙÙ ÙÙØ§. Ø¯Ù Ø£ÙÙ Ø§ÙØ­Ø§Ø¬Ø§Øª Ø§ÙÙÙ ØªØ¹ÙÙÙØ§ Ø¹Ø´Ø§Ù ØªØ¹ÙÙ Ø§ÙÙØªØ§Ø¦Ø¬.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="table-title">Growth Command Center</div><div class="help-text">ابدأ من هنا. دي أهم الحاجات اللي تعملها عشان تعلي النتائج.</div>', unsafe_allow_html=True)
     scale = df[df['today_action'] == 'SCALE 15-20%'].head(1)
     pause = df[df['today_action'] == 'PAUSE TODAY'].head(1)
     fix = df[df['growth_priority'].astype(str).str.contains('Fix', na=False)].head(1)
