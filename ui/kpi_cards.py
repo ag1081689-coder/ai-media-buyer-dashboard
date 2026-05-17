@@ -1,5 +1,6 @@
 import html
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 def render_kpi_cards(cards):
@@ -21,13 +22,25 @@ def render_kpi_cards(cards):
         )
 
     kpi_html = f'''
+    <!doctype html>
+    <html>
+    <head>
     <style>
+    html, body {{
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        font-family: Arial, sans-serif;
+        color: #ffffff;
+    }}
+
     .custom-kpi-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
         gap: 16px;
         width: 100%;
-        margin: 16px 0 12px;
+        box-sizing: border-box;
+        padding: 2px 0;
     }}
 
     .custom-kpi-card {{
@@ -37,6 +50,7 @@ def render_kpi_cards(cards):
         padding: 18px 20px;
         min-height: 112px;
         box-shadow: 0 14px 45px rgba(0,0,0,.45);
+        box-sizing: border-box;
     }}
 
     .custom-kpi-label {{
@@ -74,10 +88,13 @@ def render_kpi_cards(cards):
         }}
     }}
     </style>
-
-    <div class="custom-kpi-grid">
-        {''.join(items)}
-    </div>
+    </head>
+    <body>
+        <div class="custom-kpi-grid">
+            {''.join(items)}
+        </div>
+    </body>
+    </html>
     '''
 
-    st.markdown(kpi_html, unsafe_allow_html=True)
+    components.html(kpi_html, height=290, scrolling=False)
