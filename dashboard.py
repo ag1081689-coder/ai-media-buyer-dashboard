@@ -324,6 +324,65 @@ try:
         c5.metric('Purchase ROAS', overall_roas)
         c6.metric('Website Purchases', int(window_df['purchases'].sum()))
         st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
+        st.markdown('<div class="table-title">Download Results Invoice</div>', unsafe_allow_html=True)
+        st.markdown('<div class="help-text">Choose a period and download only the client-facing results.</div>', unsafe_allow_html=True)
+        invoice_window_choice = st.selectbox('Invoice time range', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], key='invoice_window_choice')
+        invoice_specific_month = None
+        if invoice_window_choice == 'Specific Month':
+            invoice_specific_month = st.selectbox('Invoice month', MONTHS, key='invoice_month')
+        invoice_window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
+        invoice_window_value = MONTH_WINDOW_MAP.get(invoice_specific_month) if invoice_window_choice == 'Specific Month' else invoice_window_map.get(invoice_window_choice, 'TODAY')
+        invoice_df = df[df['window'] == invoice_window_value].copy()
+        if invoice_df.empty:
+            st.warning('No saved data for this invoice time range. Fetch this period first.')
+        else:
+            invoice_spent_without_tax = float(invoice_df['spend'].sum())
+            invoice_amount_spent = invoice_spent_without_tax / TAX_NET_RATE if invoice_spent_without_tax else 0
+            invoice_tax = invoice_amount_spent - invoice_spent_without_tax
+            invoice_orders = int(invoice_df['purchases'].sum())
+            invoice_purchase_value = float(invoice_df['purchase_value'].sum())
+            with st.expander('Edit invoice values', expanded=True):
+                client_name = st.text_input('Client Name', value=selected_account_name or 'Client')
+                col_i1, col_i2, col_i3 = st.columns(3)
+                amount_spent_input = col_i1.number_input('Amount Spent', value=float(invoice_amount_spent), step=100.0)
+                tax_input = col_i2.number_input('Tax', value=float(invoice_tax), step=100.0)
+                spent_without_tax_input = col_i3.number_input('Spent Without Tax', value=float(invoice_spent_without_tax), step=100.0)
+                col_i4, col_i5 = st.columns(2)
+                orders_input = col_i4.number_input('Orders', value=int(invoice_orders), step=1)
+                purchase_value_input = col_i5.number_input('Purchase Value', value=float(invoice_purchase_value), step=100.0)
+            invoice_html = f"""
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Client Invoice</title>
+<style>
+body {{background:#050505;color:#ffffff;font-family:Arial,sans-serif;padding:40px;}}
+.invoice {{max-width:900px;margin:auto;border:1px solid rgba(255,122,0,.45);border-radius:24px;padding:32px;background:#0f0f0f;}}
+h1 {{color:#ff9f1c;margin:0 0 8px;}}
+.meta {{color:#cfcfcf;margin-bottom:24px;line-height:1.7;}}
+.grid {{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}}
+.card {{border:1px solid rgba(255,122,0,.35);border-radius:16px;padding:18px;background:#111111;}}
+.label {{color:#cfcfcf;font-size:14px;margin-bottom:8px;}}
+.value {{color:#ffffff;font-size:30px;font-weight:800;}}
+</style>
+</head>
+<body>
+<div class="invoice">
+<h1>Client Invoice</h1>
+<div class="meta"><b>Client:</b> {client_name}<br><b>Ad Account:</b> {selected_account_name}<br><b>Period:</b> {invoice_window_choice}</div>
+<div class="grid">
+<div class="card"><div class="label">Amount Spent</div><div class="value">{amount_spent_input:,.0f} EGP</div></div>
+<div class="card"><div class="label">Tax</div><div class="value">{tax_input:,.0f} EGP</div></div>
+<div class="card"><div class="label">Spent Without Tax</div><div class="value">{spent_without_tax_input:,.0f} EGP</div></div>
+<div class="card"><div class="label">Orders</div><div class="value">{orders_input:,.0f}</div></div>
+<div class="card"><div class="label">Purchase Value</div><div class="value">{purchase_value_input:,.0f} EGP</div></div>
+</div>
+</div>
+</body>
+</html>
+"""
+            st.download_button('Download Invoice', data=invoice_html, file_name=f'client_invoice_{invoice_window_value}.html', mime='text/html', use_container_width=True)
         level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
         level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
         level_df = aggregate_level(window_df, level, overall_roas)
