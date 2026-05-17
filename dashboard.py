@@ -2,9 +2,11 @@ import pandas as pd
 import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
-from ui.kpi_cards import render_kpi_cards
+from ui.kpi_cards_safe import render_kpi_cards
+from ui.sidebar_style import apply_sidebar_style, render_sidebar_brand
 
 st.set_page_config(page_title='AI Media Buyer Dashboard', layout='wide')
+apply_sidebar_style()
 
 st.markdown('''
 <style>
@@ -229,6 +231,7 @@ def show_budget_simulator(row):
 
 st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">Orange Performance OS</span><h1>AI Media Buyer Operating System</h1><p class="hero-sub">Choose a workspace from the sidebar: overview, invoice, recommendations, tracking, ads actions, or sync settings.</p><div class="hero-tov">One platform. Clear actions. Better decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
 
+render_sidebar_brand()
 page = st.sidebar.radio('AI Media Buyer OS', ['Overview Dashboard','Client Invoice','AI Recommendations','Tracking Diagnostics','Ads Actions','Settings / Sync'])
 
 try:
