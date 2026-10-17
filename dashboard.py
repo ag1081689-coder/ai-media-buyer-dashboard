@@ -1,4 +1,5 @@
 import pandas as pd
+import hmac
 from pathlib import Path
 import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
@@ -36,7 +37,7 @@ if not st.session_state.authenticated:
 
     if st.button("Login", use_container_width=True):
 
-        if username in USERS and USERS[username]["password"] == password:
+        if username in USERS and USERS[username]["password"] and hmac.compare_digest(USERS[username]["password"], password):
 
             st.session_state.authenticated = True
             st.session_state.user = username
