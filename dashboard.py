@@ -315,7 +315,7 @@ else:
     selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
-fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month','All saved windows'])
+fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'])
 fetch_specific_month = None
 if fetch_window_choice == 'Specific Month':
     fetch_specific_month = st.sidebar.selectbox('Select Month to Fetch', MONTHS)
