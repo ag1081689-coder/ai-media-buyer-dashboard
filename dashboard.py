@@ -1,7 +1,13 @@
 import pandas as pd
+import hmac
+from pathlib import Path
 import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
+from pages_app.creative_academy import render_creative_academy
+from pages_app.media_buyer_journey import render_media_buyer_journey
+from pages_app.campaign_architect import render_campaign_architect
+from pages_app.ai_strategy_studio import render_ai_strategy_studio
 from ui.kpi_cards_safe import render_kpi_cards
 from ui.sidebar_style import apply_sidebar_style, render_sidebar_brand
 from config.auth_access import USERS, filter_accounts_for_user, get_account_mode
@@ -35,7 +41,7 @@ if not st.session_state.authenticated:
 
     if st.button("Login", use_container_width=True):
 
-        if username in USERS and USERS[username]["password"] == password:
+        if username in USERS and USERS[username]["password"] and hmac.compare_digest(USERS[username]["password"], password):
 
             st.session_state.authenticated = True
             st.session_state.user = username
@@ -273,10 +279,25 @@ def show_budget_simulator(row):
 st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">ZENO OS</span><h1>ZENO OS</h1><p class="hero-sub">Scale Smarter. Faster.</p><div class="hero-tov">Your AI command center for smarter media buying decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
 
 render_sidebar_brand()
-page = st.sidebar.radio('ZENO OS', ['Overview Dashboard','Client Invoice','AI Recommendations','Tracking Diagnostics','Ads Actions','Settings / Sync'])
+page = st.sidebar.radio('ZENO OS', ['AI Strategy Studio','Start From Zero','Creative Strategy Academy','Campaign Structure Architect','Overview Dashboard','Campaign Performance','Creative Analysis','AI Recommendations','Settings / Sync'])
+if page == 'AI Strategy Studio':
+    render_ai_strategy_studio()
+    st.stop()
+if page == 'Start From Zero':
+    render_media_buyer_journey()
+    st.stop()
+if page == 'Campaign Structure Architect':
+    render_campaign_architect()
+    st.stop()
+if page == 'Creative Strategy Academy':
+    render_creative_academy()
+    st.stop()
 
 try:
-    ad_accounts = fetch_business_ad_accounts()
+    @st.cache_data(ttl=600, show_spinner=False)
+    def cached_ad_accounts():
+        return fetch_business_ad_accounts()
+    ad_accounts = cached_ad_accounts()
     ad_accounts = filter_accounts_for_user(ad_accounts, st.session_state.allowed_accounts)
 except Exception as e:
     ad_accounts = []
@@ -309,24 +330,25 @@ if ad_accounts:
         """, unsafe_allow_html=True)
 
     if st.sidebar.button("Logout", use_container_width=True):
-        st.session_state.authenticated = False
+        for key in ('authenticated', 'user', 'role', 'allowed_accounts'):
+            st.session_state.pop(key, None)
         st.rerun()
 else:
     selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
-fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month','All saved windows'])
+fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Last 7 Days','Today','Last 3 Days','This Month','Last Month','This Year','Specific Month'])
 fetch_specific_month = None
 if fetch_window_choice == 'Specific Month':
     fetch_specific_month = st.sidebar.selectbox('Select Month to Fetch', MONTHS)
 
-if st.sidebar.button('Sync Meta Data'):
+if st.sidebar.button('Sync Meta Data', disabled=st.session_state.get('role') != 'admin' or not selected_account_id):
     try:
         selected_window = None
         if fetch_window_choice == 'Today': selected_window = 'TODAY'
         elif fetch_window_choice == 'Last 3 Days': selected_window = '3D'
         elif fetch_window_choice == 'Last 7 Days': selected_window = '7D'
-        elif fetch_window_choice == 'This Month': selected_window = '30D'
+        elif fetch_window_choice == 'This Month': selected_window = 'MTD'
         elif fetch_window_choice == 'Last Month': selected_window = 'LAST_MONTH'
         elif fetch_window_choice == 'This Year': selected_window = 'THIS_YEAR'
         elif fetch_window_choice == 'Specific Month': selected_window = MONTH_WINDOW_MAP.get(fetch_specific_month)
@@ -334,7 +356,22 @@ if st.sidebar.button('Sync Meta Data'):
         if df_live is None or df_live.empty:
             st.warning(f'No Meta data returned for {selected_account_name or selected_account_id}. Try another time window or account.')
         else:
-            df_live.to_csv('meta_ads_report.csv', index=False)
+            report_path = Path('meta_ads_report.csv')
+            if report_path.exists():
+                try:
+                    previous = pd.read_csv(report_path)
+                    if {'account_id', 'window'}.issubset(previous.columns) and {'account_id', 'window'}.issubset(df_live.columns):
+                        account_keys = df_live['account_id'].astype(str).unique()
+                        window_keys = df_live['window'].astype(str).unique()
+                        previous = previous[~(
+                            previous['account_id'].astype(str).isin(account_keys)
+                            & previous['window'].astype(str).isin(window_keys)
+                        )]
+                        df_live = pd.concat([previous, df_live], ignore_index=True)
+                except (EmptyDataError, ParserError):
+                    st.warning('Existing report could not be read; replacing the corrupted CSV.')
+            df_live.to_csv(report_path, index=False)
+            st.cache_data.clear()
             st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
         msg = str(e)
@@ -344,8 +381,11 @@ if st.sidebar.button('Sync Meta Data'):
             st.error(f'Error fetching Meta data: {e}')
 
 try:
+    @st.cache_data(show_spinner=False)
+    def read_saved_report(file_mtime):
+        return pd.read_csv('meta_ads_report.csv')
     try:
-        df = pd.read_csv('meta_ads_report.csv')
+        df = read_saved_report(Path('meta_ads_report.csv').stat().st_mtime)
     except (EmptyDataError, ParserError):
         st.warning('The saved report is empty or corrupted. Click Sync Meta Data again for the selected ad account.')
         st.stop()
@@ -359,18 +399,18 @@ try:
         st.stop()
     if 'window' not in df.columns:
         df['window'] = 'TODAY'
-    df['window'] = df['window'].fillna('TODAY').replace({'MTD':'30D','this_month':'30D','None':'TODAY'})
+    df['window'] = df['window'].fillna('TODAY').replace({'this_month':'MTD','None':'TODAY'})
     for col in ['spend','ctr','cpc','cpm','frequency','roas','purchases','cost_per_purchase','purchase_value','aov','add_to_cart','initiate_checkout','purchase_rate','lpv_rate','atc_rate','manual_roas','meta_roas','clicks','impressions','landing_page_view','view_content']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         else:
             df[col] = 0
 
-    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Today')
+    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Last 7 Days')
     report_specific_month = None
     if window_choice == 'Specific Month':
         report_specific_month = st.selectbox('Report Month', MONTHS, key='report_month')
-    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
+    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'MTD','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
     selected_window_value = MONTH_WINDOW_MAP.get(report_specific_month) if window_choice == 'Specific Month' else window_map.get(window_choice, 'TODAY')
     window_df = df[df['window'] == selected_window_value].copy()
     if window_df.empty:
@@ -392,7 +432,8 @@ try:
     ])
     st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
 
-    level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
+    level_options = ['Campaigns','Ad Sets','Ads'] if page == 'Overview Dashboard' else (['Campaigns'] if page == 'Campaign Performance' else (['Ads'] if page == 'Creative Analysis' else ['Campaigns','Ad Sets','Ads']))
+    level_choice = st.segmented_control('Level', level_options, default=level_options[0])
     level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
     level_df = aggregate_level(window_df, level, overall_roas)
     if level_df.empty:
@@ -443,6 +484,9 @@ try:
             st.bar_chart(chart_df[['spend','purchase_value','manual_roas','score','tracking_health_score']])
         else:
             show_table(f'{window_choice} - {level_choice} {view_choice}', 'Performance overview and decision table.', filtered, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page in ('Campaign Performance','Creative Analysis'):
+        show_table(page, 'Focused performance view.', level_df, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
 
     elif page == 'AI Recommendations':
         show_growth_center(level_df); show_alerts(level_df)
