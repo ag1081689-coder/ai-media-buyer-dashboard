@@ -22,7 +22,7 @@ def build_windows():
         '3D': {'date_preset': 'last_3d'},
         '7D': {'date_preset': 'last_7d'},
         'MTD': {'date_preset': 'this_month'},
-        '30D': {'date_preset': 'this_month'},
+        '30D': {'date_preset': 'last_30d'},
         'LAST_MONTH': {'date_preset': 'last_month'},
         'THIS_YEAR': {'date_preset': 'this_year'},
     }
@@ -163,9 +163,9 @@ def fetch_meta_ads_report(ad_account_id=None, account_name=None, selected_window
     init_api()
     account = AdAccount(selected_account_id)
 
-    windows_to_fetch = WINDOWS
-    if selected_window and selected_window in WINDOWS:
-        windows_to_fetch = {selected_window: WINDOWS[selected_window]}
+    # Avoid fetching 12+ overlapping windows by default. Default to a single 7-day report.
+    window_key = selected_window if selected_window in WINDOWS else '7D'
+    windows_to_fetch = {window_key: WINDOWS[window_key]}
 
     all_rows = []
     for window_name, params in windows_to_fetch.items():
