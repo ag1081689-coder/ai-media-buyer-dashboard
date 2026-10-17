@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
@@ -273,10 +274,13 @@ def show_budget_simulator(row):
 st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">ZENO OS</span><h1>ZENO OS</h1><p class="hero-sub">Scale Smarter. Faster.</p><div class="hero-tov">Your AI command center for smarter media buying decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
 
 render_sidebar_brand()
-page = st.sidebar.radio('ZENO OS', ['Overview Dashboard','Client Invoice','AI Recommendations','Tracking Diagnostics','Ads Actions','Settings / Sync'])
+page = st.sidebar.radio('JustAds Analytics', ['Overview Dashboard','Campaign Performance','Creative Analysis','AI Recommendations','Settings / Sync'])
 
 try:
-    ad_accounts = fetch_business_ad_accounts()
+    @st.cache_data(ttl=600, show_spinner=False)
+    def cached_ad_accounts():
+        return fetch_business_ad_accounts()
+    ad_accounts = cached_ad_accounts()
     ad_accounts = filter_accounts_for_user(ad_accounts, st.session_state.allowed_accounts)
 except Exception as e:
     ad_accounts = []
@@ -335,6 +339,7 @@ if st.sidebar.button('Sync Meta Data'):
             st.warning(f'No Meta data returned for {selected_account_name or selected_account_id}. Try another time window or account.')
         else:
             df_live.to_csv('meta_ads_report.csv', index=False)
+            st.cache_data.clear()
             st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
         msg = str(e)
@@ -344,8 +349,11 @@ if st.sidebar.button('Sync Meta Data'):
             st.error(f'Error fetching Meta data: {e}')
 
 try:
+    @st.cache_data(show_spinner=False)
+    def read_saved_report(file_mtime):
+        return pd.read_csv('meta_ads_report.csv')
     try:
-        df = pd.read_csv('meta_ads_report.csv')
+        df = read_saved_report(Path('meta_ads_report.csv').stat().st_mtime)
     except (EmptyDataError, ParserError):
         st.warning('The saved report is empty or corrupted. Click Sync Meta Data again for the selected ad account.')
         st.stop()
@@ -392,7 +400,8 @@ try:
     ])
     st.caption('Real Ad Spend is Meta Amount Spent. Estimated Recharge = Real Ad Spend / 0.86. AI decisions use Real Ad Spend.')
 
-    level_choice = st.segmented_control('Level', ['Campaigns','Ad Sets','Ads'], default='Campaigns')
+    level_options = ['Campaigns','Ad Sets','Ads'] if page == 'Overview Dashboard' else (['Campaigns'] if page == 'Campaign Performance' else (['Ads'] if page == 'Creative Analysis' else ['Campaigns','Ad Sets','Ads']))
+    level_choice = st.segmented_control('Level', level_options, default=level_options[0])
     level = {'Campaigns':'campaign','Ad Sets':'adset','Ads':'ad'}[level_choice]
     level_df = aggregate_level(window_df, level, overall_roas)
     if level_df.empty:
@@ -443,6 +452,9 @@ try:
             st.bar_chart(chart_df[['spend','purchase_value','manual_roas','score','tracking_health_score']])
         else:
             show_table(f'{window_choice} - {level_choice} {view_choice}', 'Performance overview and decision table.', filtered, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
+
+    elif page in ('Campaign Performance','Creative Analysis'):
+        show_table(page, 'Focused performance view.', level_df, decision_cols, name_col={'campaign':'campaign_name','adset':'adset_name','ad':'ad_name'}[level])
 
     elif page == 'AI Recommendations':
         show_growth_center(level_df); show_alerts(level_df)
