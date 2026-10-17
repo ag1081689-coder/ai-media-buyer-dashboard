@@ -314,7 +314,8 @@ if ad_accounts:
         """, unsafe_allow_html=True)
 
     if st.sidebar.button("Logout", use_container_width=True):
-        st.session_state.authenticated = False
+        for key in ('authenticated', 'user', 'role', 'allowed_accounts'):
+            st.session_state.pop(key, None)
         st.rerun()
 else:
     selected_account_id = None; selected_account_name = None
@@ -325,7 +326,7 @@ fetch_specific_month = None
 if fetch_window_choice == 'Specific Month':
     fetch_specific_month = st.sidebar.selectbox('Select Month to Fetch', MONTHS)
 
-if st.sidebar.button('Sync Meta Data'):
+if st.sidebar.button('Sync Meta Data', disabled=st.session_state.get('role') != 'admin' or not selected_account_id):
     try:
         selected_window = None
         if fetch_window_choice == 'Today': selected_window = 'TODAY'
