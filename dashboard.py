@@ -5,6 +5,7 @@ import streamlit as st
 from pandas.errors import EmptyDataError, ParserError
 from meta_ads_fetcher import fetch_meta_ads_report, fetch_business_ad_accounts
 from pages_app.creative_academy import render_creative_academy
+from pages_app.media_buyer_journey import render_media_buyer_journey
 from ui.kpi_cards_safe import render_kpi_cards
 from ui.sidebar_style import apply_sidebar_style, render_sidebar_brand
 from config.auth_access import USERS, filter_accounts_for_user, get_account_mode
@@ -276,7 +277,10 @@ def show_budget_simulator(row):
 st.markdown('''<div class="smart-hero"><div class="hero-copy"><span class="badge">ZENO OS</span><h1>ZENO OS</h1><p class="hero-sub">Scale Smarter. Faster.</p><div class="hero-tov">Your AI command center for smarter media buying decisions.</div></div><div class="counter-wrap"><div class="counter-orb"><div class="counter-number"></div><div class="counter-label">Decision Score</div></div></div></div>''', unsafe_allow_html=True)
 
 render_sidebar_brand()
-page = st.sidebar.radio('ZENO OS', ['Creative Strategy Academy','Overview Dashboard','Campaign Performance','Creative Analysis','AI Recommendations','Settings / Sync'])
+page = st.sidebar.radio('ZENO OS', ['Start From Zero','Creative Strategy Academy','Overview Dashboard','Campaign Performance','Creative Analysis','AI Recommendations','Settings / Sync'])
+if page == 'Start From Zero':
+    render_media_buyer_journey()
+    st.stop()
 if page == 'Creative Strategy Academy':
     render_creative_academy()
     st.stop()
