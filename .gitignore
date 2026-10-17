@@ -1,0 +1,12 @@
+# local secrets
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.csv
+.streamlit/secrets.toml
+node_modules/
+.next/
