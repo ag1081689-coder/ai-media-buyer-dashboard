@@ -320,7 +320,7 @@ else:
     selected_account_id = None; selected_account_name = None
     st.warning('No ad accounts found. Check META_BUSINESS_ID, token permissions, and system user assets.')
 
-fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'])
+fetch_window_choice = st.sidebar.selectbox('Fetch window from Meta', ['Last 7 Days','Today','Last 3 Days','This Month','Last Month','This Year','Specific Month'])
 fetch_specific_month = None
 if fetch_window_choice == 'Specific Month':
     fetch_specific_month = st.sidebar.selectbox('Select Month to Fetch', MONTHS)
@@ -331,7 +331,7 @@ if st.sidebar.button('Sync Meta Data'):
         if fetch_window_choice == 'Today': selected_window = 'TODAY'
         elif fetch_window_choice == 'Last 3 Days': selected_window = '3D'
         elif fetch_window_choice == 'Last 7 Days': selected_window = '7D'
-        elif fetch_window_choice == 'This Month': selected_window = '30D'
+        elif fetch_window_choice == 'This Month': selected_window = 'MTD'
         elif fetch_window_choice == 'Last Month': selected_window = 'LAST_MONTH'
         elif fetch_window_choice == 'This Year': selected_window = 'THIS_YEAR'
         elif fetch_window_choice == 'Specific Month': selected_window = MONTH_WINDOW_MAP.get(fetch_specific_month)
@@ -339,7 +339,21 @@ if st.sidebar.button('Sync Meta Data'):
         if df_live is None or df_live.empty:
             st.warning(f'No Meta data returned for {selected_account_name or selected_account_id}. Try another time window or account.')
         else:
-            df_live.to_csv('meta_ads_report.csv', index=False)
+            report_path = Path('meta_ads_report.csv')
+            if report_path.exists():
+                try:
+                    previous = pd.read_csv(report_path)
+                    if {'account_id', 'window'}.issubset(previous.columns) and {'account_id', 'window'}.issubset(df_live.columns):
+                        account_keys = df_live['account_id'].astype(str).unique()
+                        window_keys = df_live['window'].astype(str).unique()
+                        previous = previous[~(
+                            previous['account_id'].astype(str).isin(account_keys)
+                            & previous['window'].astype(str).isin(window_keys)
+                        )]
+                        df_live = pd.concat([previous, df_live], ignore_index=True)
+                except (EmptyDataError, ParserError):
+                    st.warning('Existing report could not be read; replacing the corrupted CSV.')
+            df_live.to_csv(report_path, index=False)
             st.cache_data.clear()
             st.success(f'Meta data updated successfully for {selected_account_name or selected_account_id}.')
     except Exception as e:
@@ -368,18 +382,18 @@ try:
         st.stop()
     if 'window' not in df.columns:
         df['window'] = 'TODAY'
-    df['window'] = df['window'].fillna('TODAY').replace({'MTD':'30D','this_month':'30D','None':'TODAY'})
+    df['window'] = df['window'].fillna('TODAY').replace({'this_month':'MTD','None':'TODAY'})
     for col in ['spend','ctr','cpc','cpm','frequency','roas','purchases','cost_per_purchase','purchase_value','aov','add_to_cart','initiate_checkout','purchase_rate','lpv_rate','atc_rate','manual_roas','meta_roas','clicks','impressions','landing_page_view','view_content']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         else:
             df[col] = 0
 
-    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Today')
+    window_choice = st.segmented_control('Time window', ['Today','Last 3 Days','Last 7 Days','This Month','Last Month','This Year','Specific Month'], default='Last 7 Days')
     report_specific_month = None
     if window_choice == 'Specific Month':
         report_specific_month = st.selectbox('Report Month', MONTHS, key='report_month')
-    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'30D','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
+    window_map = {'Today':'TODAY','Last 3 Days':'3D','Last 7 Days':'7D','This Month':'MTD','Last Month':'LAST_MONTH','This Year':'THIS_YEAR'}
     selected_window_value = MONTH_WINDOW_MAP.get(report_specific_month) if window_choice == 'Specific Month' else window_map.get(window_choice, 'TODAY')
     window_df = df[df['window'] == selected_window_value].copy()
     if window_df.empty:
