@@ -2,12 +2,12 @@ import os
 
 USERS = {
     "admin": {
-        "password": os.getenv("ADMIN_PASSWORD", ""),
+        "password": os.getenv("ADMIN_PASSWORD") or None,
         "allowed_accounts": ["*"],
         "role": "admin"
     },
     "memmar degla": {
-        "password": os.getenv("MEMMAR_DEGLA_PASSWORD", ""),
+        "password": os.getenv("MEMMAR_DEGLA_PASSWORD") or None,
         "allowed_accounts": ["act_3654875044793620"],
         "role": "client_viewer"
     }
